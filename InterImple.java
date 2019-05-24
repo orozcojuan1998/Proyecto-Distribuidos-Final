@@ -77,12 +77,9 @@ public class InterImple implements Inter{
 		}
 		return "";
 	}
-	
-	   public void agregarOp(int index, String operation){
-           
-           TX.get(index).add(operation);
-           
-       }
+	  public void agregarOp(int index, String operation){
+          TX.get(index).add(operation);
+      }
 	
 	@Override
 	public String bytesToHex(byte[] hash) {
