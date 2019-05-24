@@ -69,6 +69,18 @@ public class UsuarioGUI {
 		frame.setBounds(100, 100, 450, 300);
 		frame.getContentPane().setLayout(null);
 		
+		JPanel panel = new JPanel();
+		panel.setBounds(0, 0, 434, 261);
+		frame.getContentPane().add(panel);
+		panel.setLayout(null);
+		
+		JButton btnNewButton = new JButton("Comprar");
+		btnNewButton.setBounds(335, 227, 89, 23);
+		panel.add(btnNewButton);
+		panel.setVisible(false);
+		
+		
+		
 		JLabel lblNoTarjeta = new JLabel("No. Tarjeta:");
 		lblNoTarjeta.setBounds(46, 72, 63, 14);
 		frame.getContentPane().add(lblNoTarjeta);
@@ -83,26 +95,20 @@ public class UsuarioGUI {
 		btnIngresar.setBounds(113, 158, 89, 23);
 		frame.getContentPane().add(btnIngresar);
 		
-		JPanel panel = new JPanel();
-		panel.setBounds(0, 0, 434, 261);
-		frame.getContentPane().add(panel);
-		panel.setLayout(null);
-		
-		JButton btnNewButton = new JButton("Comprar");
-		btnNewButton.setBounds(335, 227, 89, 23);
-		panel.add(btnNewButton);
-		
 		JPanel pagoRealizado = new JPanel();
 		pagoRealizado.setBounds(0, 0, 434, 261);
 		frame.getContentPane().add(pagoRealizado);
 		pagoRealizado.setLayout(null);
+		
+		JLabel compraResultado = new JLabel("");
+		compraResultado.setBounds(0, 0, 220, 17);
+		pagoRealizado.add(compraResultado);
 		pagoRealizado.setVisible(false);
-		panel.setVisible(false);
 		
 		btnIngresar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				boolean respuesta = false;
-				int tarjetaNum = Integer.parseInt(tarjeta.getText());
+				String tarjetaNum = tarjeta.getText();
 				try {
 					respuesta = control.login(tarjetaNum);
 				} catch (RemoteException e2) {
@@ -138,6 +144,7 @@ public class UsuarioGUI {
 				
 			}
 		});
+		
 		
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
