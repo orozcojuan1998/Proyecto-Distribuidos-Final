@@ -1,0 +1,20 @@
+PRODUCTOS
+8
+pantalon,10,20
+agua,2,20
+zapatos,5,20
+reloj,6,20
+computador,20,20
+celular,15,20
+chaqueta,12,20
+equipo de sonido,8,20
+TARJETAS
+5
+1234,4
+4321,18
+6541,30
+5246,78
+8975,50
+
+   
+   
