@@ -4,6 +4,9 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -11,22 +14,39 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import Coordinador.CoordinadorInterface;
+import Coordinador.TransaccionCoordinador;
 import Cuenta.Cuenta;
 import Cuenta.CuentaRMII;
 import Producto.Producto;
 import Producto.ProductoRMII;
 
-public class Cliente {
-	
-	public static void main(String[] args) throws MalformedURLException, RemoteException, NotBoundException {
-		ArrayList<Cuenta> cuentas = new ArrayList<Cuenta>(); 
-		ArrayList<Producto> productos = new ArrayList<Producto>(); 
-		CuentaRMII j = (CuentaRMII) Naming.lookup("rmi://localhost:5000//cuenta");
-		ProductoRMII i = (ProductoRMII) Naming.lookup("rmi://localhost:1900//producto");
-		j.leerCuentas("iniciocuentas.txt");
-		j.imprimirCuentas();
-		i.leerProductos("inicioproductos.txt");
-		i.imprimirProductos();
+public class Cliente extends UnicastRemoteObject{
+
+	private ArrayList<Cuenta> cuentas = new ArrayList<Cuenta>(); 
+	private ArrayList<Producto> productos = new ArrayList<Producto>(); 
+	private ArrayList<ProductoCarrito> carrito = new ArrayList<ProductoCarrito>();
+	private CoordinadorInterface coordinador;
+	private int portCliente =3003;
+	private int portCoordinador = 3000;
+	private static int portCuentas = 3001;
+	private static int portProductos = 3002;
+	private static CuentaRMII j;
+	private static ProductoRMII i;
+
+	protected Cliente() throws RemoteException, NotBoundException {
+		super();
+
+
+
+		iniciarSesion();
+
+
+
+
+
+
+		/*
 		String value,contrasena,usuario,tarjeta; 
         Scanner input = new Scanner(System.in);
         while(true) {
@@ -99,7 +119,7 @@ public class Cliente {
 			    	                                    System.out.println("No hay suficientes items disponibles, ingrese una cantidad inferior...");
 			    	                                } 
 			    	                            }
-			    	                         
+
 
 			    	                            }
 			    	                        	while(true){
@@ -147,10 +167,9 @@ public class Cliente {
 		    	                                    }
 		    	                                }
 		    	                                if(fix.equals("3")){
-		    	                                	i.comprarProductos(carrito);
-		    	                                	break;
+
 		    	                                }
-		    	                               
+
 			    	                       }
 		                             }
 	            	}else {
@@ -158,8 +177,155 @@ public class Cliente {
 	            	  }
 	        	}
         	}
-	       
+
 	    }
+		 */
+	}
+	private void iniciarSesion() throws RemoteException {
+		// TODO Auto-generated method stub
+		String value = "0",contrasena,usuario,tarjeta; 
+		Scanner input = new Scanner(System.in);
+		while(!value.equals("2")) {
+			System.out.println("Seleccione una opción: ");
+			System.out.println("1. Ingresar");
+			System.out.println("2. Salir");
+			value = input.next();
+			switch(value) {
+			case "1":{
+				System.out.println("Ingrese su usuario");
+				usuario = input.next();
+				System.out.println("Ingrese su contraseña");
+				contrasena = input.next();
+				System.out.println("Ingrese su tarjeta");
+				tarjeta = input.next();
+				if(j.autenticarUsuario(usuario, contrasena,tarjeta)){
+					System.out.println("Ha ingresado correctamente");
+					carrito = new ArrayList<>();
+					productos = i.getProductos();
+					System.out.println("CATÁLOGO DE PRODUCTOS");
+					System.out.println("Numero     Item        Precio        Disponibles");
+					int k=0;
+					for (Producto producto : productos) {
+						System.out.println(k+"  "+producto.toString());
+						k++;
+					}
+
+					Boolean nextItem = true;
+					while(nextItem){
+
+						System.out.println("Ingrese el número del producto para agregarlo al carrito de compras...");
+						int item = input.nextInt();
+
+						if(!(productos.get(item).getCantidadDisponible()==0)){
+							boolean addItem = true;
+							while(addItem){
+
+								System.out.println("Ingrese la cantidad"); 
+								int num = input.nextInt();
+
+								if(num <= productos.get(item).getCantidadDisponible()){
+									addItem = false;
+									carrito.add(new ProductoCarrito(productos.get(item), num));
+									productos.get(item).setCantidadDisponible(productos.get(item).getCantidadDisponible()-num);
+									System.out.println("Producto agregado al carrito");
+									System.out.println("¿Desea agregar más productos? 1.Sí  2. No");
+									String next = input.next();
+									if(next.equals("2")){
+										nextItem = false;
+									}
+								}else{
+									System.out.println("Ingrese una cantidad menor o igual a: "+productos.get(item).getCantidadDisponible());
+								}
+
+
+							}
+						}else{
+							System.out.println("Producto agotado");
+						}
+					}
+					transaccionDeCompra(usuario);
+				}
+			}
+			case "2":{
+				break;
+			}
+			}
+		}
+
+	}
+	private void transaccionDeCompra(String usuario) throws RemoteException {
+
+
+		float total = 0;
+		boolean saldo = true;
+
+		Transaccion tv = j.solicitarTransaccion();
+		for (ProductoCarrito productoCarrito : carrito) {
+			tv.adicionarObjetoEscritura(j.getCuenta(usuario));
+			tv.adicionarObjetoLectura(j.getCuenta(usuario));
+			total+= productoCarrito.getP().getPrecio();
+		}
+		tv = j.iniciarTransaccion(tv);
+		Cuenta cuenta = j.getCuenta(usuario);
+		Cuenta cuentaTemporal = new Cuenta(cuenta.getUsuario(), cuenta.getContrasena(), cuenta.getTarjeta(), cuenta.getSaldo());
+		System.out.println("Su saldo: "+ cuenta.getSaldo());
+		if(cuenta.getSaldo()<=total){
+			cuentaTemporal.setSaldo(cuenta.getSaldo()-total);
+			System.out.println("estado transacción: "+tv.getEstado());
+			while(tv.getEstado()==1||tv.getEstado()==-1){
+				System.out.println("estado transacción: "+tv.getEstado());
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			if(tv.getEstado()==2){
+				cuenta = cuentaTemporal;
+				System.out.println("Iniciando compra de cada producto");
+			}else if(tv.getEstado()==3){
+				System.out.println("Transacción abortada ... verifique su saldo de nuevo");
+				saldo = false;
+			}
+			j.finalizarTransaccion(tv);
+		}else{
+			System.out.println("Saldo insuficiente");
+		}
+
+
+
+	}
+	public static void main(String[] args) throws MalformedURLException, RemoteException, NotBoundException {
+
+
+		System.setProperty("java.security.policy", "./cliente.policy");
+		Registry registry = null;
+
+
+
+		//coordinador = (CoordinadorInterface) registry.lookup("//127.0.0.1/Coordinador");
+
+		j = null;
+		try {
+			registry = LocateRegistry.getRegistry(portCuentas);
+			j = (CuentaRMII) registry.lookup("//127.0.0.1/Cuentas");
+		}  catch (NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+
+
+		i = null;
+		try {
+			registry = LocateRegistry.getRegistry(portProductos);
+			i = (ProductoRMII) registry.lookup("//127.0.0.1/Productos");
+		}  catch (NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Cliente c = new Cliente();
 	}
 	public static void imprimirProductos(ArrayList<Producto> productos) {
 		int i=1;
@@ -168,5 +334,7 @@ public class Cliente {
 			i++;
 		}
 	}
+
+
 
 }

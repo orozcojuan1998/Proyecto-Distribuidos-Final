@@ -15,6 +15,8 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 	public PImpleRMII() throws RemoteException {
 		super();
 		// TODO Auto-generated constructor stub
+		leerProductos("inicioproductos.txt");
+		imprimirProductos();	
 	}
 
 	private static final long serialVersionUID = 1L;
@@ -29,6 +31,8 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 	@Override
 	public void leerProductos(String x) throws RemoteException {
 		// TODO Auto-generated method stub
+		
+		
 		String linea;
 		System.out.println("Hola");
 		try {
@@ -40,7 +44,7 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 			for(int i=0;i<nProductos;i++) {
 				linea = br.readLine();
 				String[] parts = linea.split(",");
-				Producto producto= new Producto(parts[0], Integer.parseInt(parts[2]),Float.parseFloat(parts[1]));		
+				Producto producto= new Producto(Integer.parseInt(parts[0]),parts[1], Integer.parseInt(parts[2]),Float.parseFloat(parts[3]));		
 				this.productos.add(producto);
 			}
 			br.close();
@@ -59,29 +63,32 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 
 	@Override
 	public ArrayList<Producto> getProductos() throws RemoteException {
-		return this.productos;
+		ArrayList<Producto> productosTemporales = new ArrayList<>();
+		for (Producto producto : productos) {
+			productosTemporales.add(new Producto(producto.getID(), producto.getNombre(), producto.getCantidadDisponible(), producto.getPrecio()));
+		}
+		
+		return productosTemporales;
 	}
 	
 	@Override
 	public boolean comprarProductos(Map<Integer, String> carrito) throws RemoteException {
-		try{
-			for(int i = 1; i <= productos.size(); i++){
-				
+	
+			for(int i = 1; i <= productos.size(); i++){			
 				if(carrito.get(i)!=null){
-					productos.get(i).setCantidadDisponible(productos.get(i).getCantidadDisponible()-Integer.parseInt(carrito.get(i)));
-				}
+					if(productos.get(i-1).getCantidadDisponible()-Integer.parseInt(carrito.get(i))<0){
+						throw new RemoteException("Se agotaron existencias");
+					}
+					productos.get(i-1).setCantidadDisponible(productos.get(i-1).getCantidadDisponible()-Integer.parseInt(carrito.get(i)));
+				}		
 			}
-		}
-		catch(ArrayIndexOutOfBoundsException e){
-			throw new RemoteException("Se agotaron existencias");
-		}
 		for(int i = 0; i < productos.size(); i++){
 			Producto producto = productos.get(i);
-			System.out.println(i+" Cantidad despues de comprar "+producto.getCantidadDisponible());
+			System.out.println(i+1+" Cantidad despues de comprar "+producto.getCantidadDisponible());
 		}
 		
 		return true;
-	} 
+	}
 
 	
 	

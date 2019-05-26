@@ -13,4 +13,7 @@ public interface ProductoRMII extends Remote{
 	public void imprimirProductos() throws RemoteException;
 	public ArrayList<Producto> getProductos() throws RemoteException;
 	public boolean comprarProductos(Map<Integer, String> carrito) throws RemoteException;
+	
+	
+
 }

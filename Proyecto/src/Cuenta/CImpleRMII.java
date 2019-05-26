@@ -3,7 +3,10 @@ package Cuenta;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.nio.charset.StandardCharsets;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -12,23 +15,54 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import Cliente.Cliente;
+import Cliente.Participante;
+import Cliente.ProductoCarrito;
+import Cliente.Transaccion;
+import Coordinador.CoordinadorInterface;
+import Producto.Producto;
+import Cliente.Transaccion;
+
 public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
 
+	private ArrayList<Transaccion> transaccionesActivas;
+	private ArrayList<Cliente> clientesParticipantes;
+	private int portCoordinador = 3000;
+	private CoordinadorInterface coordinador;
+	private int numSecuencia = 0;
 	
-	
-	public CImpleRMII() throws RemoteException {
+	public CImpleRMII() throws RemoteException, NotBoundException {
 		super();
 		// TODO Auto-generated constructor stub
+		indexTX_user = 0;
+		transaccionesActivas = new ArrayList<Transaccion>();
+		System.setProperty("java.security.policy", "./cliente.policy");
+		//Registry registry = LocateRegistry.getRegistry(portCoordinador);
+
+
+		//coordinador = (CoordinadorInterface) registry.lookup("//127.0.0.1/Coordinador");
+
+		
+		
+		leerCuentas("iniciocuentas.txt");
+		imprimirCuentas();
 	}
 
 	ArrayList<Cuenta> cuentas = new ArrayList<Cuenta>(); 
 	private static final long serialVersionUID = 1L;
     Map<String, String> card_value = new HashMap<String, String>();
     List<List<String>> TX = new ArrayList<List<String>>();
-    int indexTX_user = 0;
+    
+    
+    
+    
+    int indexTX_user ;
 
 	@Override
 	public String saludar(String x) throws RemoteException {
+		
+		
+		
 		// TODO Auto-generated method stub
 		return "Hola "+x+" desde cuenta";
 	}
@@ -119,12 +153,104 @@ public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
     public void set_indexTX() 	throws RemoteException {                
     	indexTX_user++; 
     }
-    @Override
-    public void create_transaction(int index, List<String> TX_i){ 
-        TX.add(index, TX_i);
-    }
+   
     @Override
     public void add_operation(int index, String operation){
         TX.get(index).add(operation);
     }
+    
+    public boolean validar(Transaccion tv) throws RemoteException{
+    	boolean valida = true;
+    	
+    	for(int i= 0; i < transaccionesActivas.size(); i++){
+    		List<Object> conjuntoEscrituraTV = tv.getConjuntoEscritura();
+    		List<Object> conjuntoLecturaActual = transaccionesActivas.get(i).getConjuntoLectura();
+    		
+    		for (Object cuentaTV : conjuntoEscrituraTV) {
+				for (Object cuentaA : conjuntoLecturaActual) {
+					if(((Cuenta) cuentaTV).getTarjeta().equals(cuentaA)){
+						return false;
+					}
+				}
+			}
+    		
+    		
+    	}
+    	
+    	return valida;
+    }
+
+	@Override
+	public synchronized Cuenta getCuenta(String usuario)throws RemoteException  {
+		for (Cuenta cuenta : cuentas) {
+			if(usuario.equals(cuenta.getUsuario())){
+				return cuenta;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public float getSaldo(String usuario) throws RemoteException {
+		// TODO Auto-generated method stub
+		for (Cuenta cuenta : cuentas) {
+			if(usuario.equals(cuenta.getUsuario())){
+				return cuenta.getSaldo();
+			}
+		}
+		return 0;
+	}
+
+	@Override
+	public void setSaldo(String usuario, float f) throws RemoteException {
+		for (Cuenta cuenta : cuentas) {
+			if(usuario.equals(cuenta.getUsuario())){
+				cuenta.setSaldo(f);
+			}
+		}
+	
+		
+	}
+
+	@Override
+	public Transaccion iniciarTransaccion(Transaccion tv) throws RemoteException {
+		tv.setNumTransaccion(numSecuencia++);
+		transaccionesActivas.add(tv);
+		tv.setEstado(1);
+		System.out.println("estado transacción: "+tv.getEstado());
+		if(validar(tv)){
+			tv.setEstado(2);
+		}else{
+			tv.setEstado(3);
+		}
+		System.out.println("estado transacción: "+tv.getEstado());
+		return tv;
+	}
+
+	private boolean verificar(Transaccion tv) throws RemoteException{
+		// TODO Auto-generated method stub
+		
+		//FORWARD
+		
+		return true;
+	}
+
+	@Override
+	public void finalizarTransaccion(Transaccion tv) throws RemoteException {
+		transaccionesActivas.remove(tv);
+		tv.setEstado(4);
+	}
+
+	@Override
+	public Transaccion solicitarTransaccion() throws RemoteException {
+		return new Transaccion();
+	}
+
+	
+
+
+	
+
+	
+    
 }

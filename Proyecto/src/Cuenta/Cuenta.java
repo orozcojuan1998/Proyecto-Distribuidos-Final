@@ -1,6 +1,8 @@
 package Cuenta;
 
-public class Cuenta {
+import java.io.Serializable;
+
+public class Cuenta implements Serializable{
 	public String usuario;
 	public String contrasena;
 	public String tarjeta;

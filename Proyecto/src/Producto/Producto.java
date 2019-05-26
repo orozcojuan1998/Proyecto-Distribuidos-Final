@@ -3,16 +3,32 @@ package Producto;
 import java.io.Serializable;
 
 public class Producto implements Serializable{
-	public String nombre;
-	public int cantidadDisponible;
-	public float precio;
 	
-	public Producto(String nombre, int cantidadDisponible, float precio) {
+	
+	private int ID;
+	private String nombre;
+	private int cantidadDisponible;
+	private float precio;
+	
+	public Producto(int ID, String nombre, int cantidadDisponible, float precio) {
 		super();
+		this.ID = ID;
 		this.nombre = nombre;
 		this.cantidadDisponible = cantidadDisponible;
 		this.precio = precio;
 	}
+	
+	
+	public int getID() {
+		return ID;
+	}
+
+
+	public void setID(int iD) {
+		ID = iD;
+	}
+
+
 	public String getNombre() {
 		return nombre;
 	}
