@@ -5,6 +5,9 @@ import java.io.FileReader;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.Map;
+
+
 
 
 public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
@@ -15,7 +18,7 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 	}
 
 	private static final long serialVersionUID = 1L;
-	ArrayList<Producto> productos = new ArrayList<Producto>(); 
+	private ArrayList<Producto> productos = new ArrayList<Producto>(); 
 
 	@Override
 	public String saludar(String x) throws RemoteException {
@@ -57,6 +60,27 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 	@Override
 	public ArrayList<Producto> getProductos() throws RemoteException {
 		return this.productos;
+	}
+	
+	@Override
+	public boolean comprarProductos(Map<Integer, String> carrito) throws RemoteException {
+		try{
+			for(int i = 1; i <= productos.size(); i++){
+				
+				if(carrito.get(i)!=null){
+					productos.get(i).setCantidadDisponible(productos.get(i).getCantidadDisponible()-Integer.parseInt(carrito.get(i)));
+				}
+			}
+		}
+		catch(ArrayIndexOutOfBoundsException e){
+			throw new RemoteException("Se agotaron existencias");
+		}
+		for(int i = 0; i < productos.size(); i++){
+			Producto producto = productos.get(i);
+			System.out.println(i+" Cantidad despues de comprar "+producto.getCantidadDisponible());
+		}
+		
+		return true;
 	} 
 
 	

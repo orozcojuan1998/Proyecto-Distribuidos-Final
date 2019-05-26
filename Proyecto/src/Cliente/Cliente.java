@@ -146,6 +146,10 @@ public class Cliente {
 		    	                                        } 
 		    	                                    }
 		    	                                }
+		    	                                if(fix.equals("3")){
+		    	                                	i.comprarProductos(carrito);
+		    	                                	break;
+		    	                                }
 		    	                               
 			    	                       }
 		                             }

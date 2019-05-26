@@ -7,6 +7,8 @@ import java.rmi.registry.LocateRegistry;
 
 public class ServidorProducto {
 	public ServidorProducto() throws RemoteException, MalformedURLException {
+		
+		
 		ProductoRMII i = new PImpleRMII();
 		LocateRegistry.createRegistry(1900);
 		Naming.rebind("rmi://localhost:1900//producto",i);
