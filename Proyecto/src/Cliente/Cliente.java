@@ -221,8 +221,9 @@ public class Cliente extends UnicastRemoteObject{
 
 		j = null;
 		try {
-			Registry registry = LocateRegistry.getRegistry(portCuentas);
-			j = (CuentaRMII) registry.lookup("//127.0.0.1/Cuentas");
+			//Registry registry = LocateRegistry.getRegistry(portCuentas);
+			j = (CuentaRMII) Naming.lookup("rmi://"+"10.192.101.31:3001"+"/Cuentas");
+			//j = (CuentaRMII) registry.lookup("10.192.101.31/Cuentas");
 		}  catch (NotBoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -232,8 +233,9 @@ public class Cliente extends UnicastRemoteObject{
 
 		i = null;
 		try {
-			Registry registry = LocateRegistry.getRegistry(portProductos);
-			i = (ProductoRMII) registry.lookup("//127.0.0.1/Productos");
+			//Registry registry = LocateRegistry.getRegistry(portProductos);
+			i = (ProductoRMII) Naming.lookup("rmi://"+"10.192.101.31:3002"+"/Productos");
+			//i = (ProductoRMII) registry.lookup("10.192.101.31/Productos");
 		}  catch (NotBoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
