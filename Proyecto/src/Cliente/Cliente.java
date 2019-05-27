@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 import javax.swing.JOptionPane;
+import javax.swing.JPasswordField;
 
 import Coordinador.CoordinadorInterface;
 import Coordinador.TransaccionCoordinador;
@@ -44,7 +45,8 @@ public class Cliente extends UnicastRemoteObject{
 	}
 	private void iniciarSesion() throws RemoteException {
 		// TODO Auto-generated method stub
-
+		JPasswordField pwd = new JPasswordField(10);
+	    int action = JOptionPane.showConfirmDialog(null, pwd,"Enter Password",JOptionPane.OK_CANCEL_OPTION);
 		String value = "0",tarjeta,contrasena,usuario, tarj, saldo;
 		
 
