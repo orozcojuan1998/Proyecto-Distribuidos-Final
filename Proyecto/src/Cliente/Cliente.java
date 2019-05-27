@@ -45,10 +45,8 @@ public class Cliente extends UnicastRemoteObject{
 	private void iniciarSesion() throws RemoteException {
 		// TODO Auto-generated method stub
 
-		String value = "0",tarjeta,contrasena,usuario;
+		String value = "0",tarjeta,contrasena,usuario, tarj, saldo;
 		
-
-		Scanner input = new Scanner(System.in);
 
 		while(!value.equals("3")) {
 			System.out.println("Seleccione una opción: ");
@@ -68,23 +66,21 @@ public class Cliente extends UnicastRemoteObject{
 					System.out.println("2. Agregar producto");
 					System.out.println("3. Salir");
 
-					opcion = JOptionPane.showInputDialog("Seleccione una opción");
+					String opcion = JOptionPane.showInputDialog("Seleccione una opción");
 					switch(opcion) {
 					case "1":{
 						System.out.println("Ingrese la tarjeta que va a recargar");
-						tarj = input.next();
+						tarj = JOptionPane.showInputDialog("Seleccione una opción");
 						System.out.println("Ingrese el saldo que va a recargar");
-						saldo = input.next();
+						saldo = JOptionPane.showInputDialog("Seleccione una opción");
 						recargarTarjeta(tarj,saldo);
 						break;
 					}case "2":{
 						String nombre,cantidad,precio;
-						System.out.println("Ingrese el nombre del producto");
-						nombre = input.next();
-						System.out.println("Ingrese la cantidad disponible");
-						cantidad = input.next();
+						nombre = JOptionPane.showInputDialog("Ingrese el nombre del producto");
+						cantidad = JOptionPane.showInputDialog("Ingrese la cantidad disponible");
 						System.out.println("Ingrese el precio del producto");
-						precio = input.next();
+						precio = JOptionPane.showInputDialog("Ingrese el precio del producto");
 						productos = i.getProductos();
 						agregarProducto(nombre,cantidad,precio);
 						break;
@@ -98,7 +94,7 @@ public class Cliente extends UnicastRemoteObject{
 					Cuenta cuenta = new Cuenta();
 					cuenta=j.getCuenta(tarjeta);
 					System.out.println("Ingresó "+cuenta.getUsuario()+" con saldo: "+cuenta.getSaldo());
-					System.out.println("Ha ingresado correctamente");
+					JOptionPane.showMessageDialog(null, "Ha ingresado correctamente");
 					carrito = new ArrayList<>();
 					productos = i.getProductos();
 					System.out.println("CATÁLOGO DE PRODUCTOS");
@@ -120,8 +116,7 @@ public class Cliente extends UnicastRemoteObject{
 							boolean addItem = true;
 							while(addItem){
 
-								System.out.println("Ingrese la cantidad"); 
-								String numS = JOptionPane.showInputDialog("Escribe tu nombre");
+								String numS = JOptionPane.showInputDialog("Ingrese la cantidad");
 								int num = Integer.parseInt(numS);
 
 								if(num <= productos.get(item).getCantidadDisponible()){
@@ -155,7 +150,7 @@ public class Cliente extends UnicastRemoteObject{
 				System.out.println(tarjeta);
 				if(j.verificarRegistro(tarjeta)) {
 					System.out.println("Ingrese su contrasena");
-					String contra = JOptionPane.showInputDialog("Escribe tu tarjeta");
+					String contra = JOptionPane.showInputDialog("Escribe tu contraseña");
 					j.setContrasena(tarjeta,contra);
 					System.out.println("Se ha registrado correctamente");
 				}else {
@@ -286,7 +281,7 @@ public class Cliente extends UnicastRemoteObject{
 		j = null;
 		try {
 			//Registry registry = LocateRegistry.getRegistry(portCuentas);
-			j = (CuentaRMII) Naming.lookup("rmi://"+"10.192.101.31:3001"+"/Cuentas");
+			j = (CuentaRMII) Naming.lookup("rmi://"+"10.192.101.21:3001"+"/Cuentas");
 			//j = (CuentaRMII) registry.lookup("10.192.101.31/Cuentas");
 		}  catch (NotBoundException e) {
 			// TODO Auto-generated catch block
@@ -298,7 +293,7 @@ public class Cliente extends UnicastRemoteObject{
 		i = null;
 		try {
 			//Registry registry = LocateRegistry.getRegistry(portProductos);
-			i = (ProductoRMII) Naming.lookup("rmi://"+"10.192.101.31:3002"+"/Productos");
+			i = (ProductoRMII) Naming.lookup("rmi://"+"10.192.101.21:3002"+"/Productos");
 			//i = (ProductoRMII) registry.lookup("10.192.101.31/Productos");
 		}  catch (NotBoundException e) {
 			// TODO Auto-generated catch block
