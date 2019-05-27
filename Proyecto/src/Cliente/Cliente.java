@@ -66,12 +66,11 @@ public class Cliente extends UnicastRemoteObject{
 
 					String opcion = JOptionPane.showInputDialog("Seleccione una opción");
 					switch(opcion) {
-					case "1":{
-						System.out.println("Ingrese la tarjeta que va a recargar");
-						tarj = JOptionPane.showInputDialog("Seleccione una opción");
-						System.out.println("Ingrese el saldo que va a recargar");
-						saldo = JOptionPane.showInputDialog("Seleccione una opción");
+					case "1":{						
+						tarj = JOptionPane.showInputDialog("Ingrese la tarjeta que va a recargar");
+						saldo = JOptionPane.showInputDialog("Ingrese el saldo que va a recargar");
 						recargarTarjeta(tarj,saldo);
+						JOptionPane.showMessageDialog(null, "Se ha recargado la tarjeta correctamente");
 						break;
 					}case "2":{
 						String nombre,cantidad,precio;
@@ -168,8 +167,8 @@ public class Cliente extends UnicastRemoteObject{
 			j.recargarTarjeta(tarj,saldo);
 		}else {
 			JOptionPane.showMessageDialog(null, "Error", "Transacción abortada", JOptionPane.ERROR_MESSAGE);
-			j.finalizarTransaccion(tvRecarga);
 		}
+		j.finalizarTransaccion(tvRecarga);
 	}
 	private void agregarProducto(String nombre, String cantidadD, String precio) throws RemoteException {
 		Transaccion tvAgregar = j.solicitarTransaccion();
@@ -182,8 +181,9 @@ public class Cliente extends UnicastRemoteObject{
 			
 		}else {
 			JOptionPane.showMessageDialog(null, "Error", "Transacción abortada", JOptionPane.ERROR_MESSAGE);
-			j.finalizarTransaccion(tvAgregar);
 		}
+		j.finalizarTransaccion(tvAgregar);
+
 	}
 	private void transaccionDeCompra(String tarjeta) throws RemoteException {
 
@@ -252,9 +252,6 @@ public class Cliente extends UnicastRemoteObject{
 				i.finalizarTransaccion(tvProductosALeer);
 				j.finalizarTransaccion(tvCuenta);
 			}
-			
-			
-			
 		}else if(tvCuenta.getEstado()==3){
 			JOptionPane.showMessageDialog(null, "Error", "Transacción abortada (CUENTA)... intente de nuevo", JOptionPane.ERROR_MESSAGE);
 			j.finalizarTransaccion(tvCuenta);
