@@ -42,7 +42,7 @@ public class Cliente extends UnicastRemoteObject{
 	}
 	private void iniciarSesion() throws RemoteException {
 		// TODO Auto-generated method stub
-		String value = "0",contrasena,usuario,tarjeta; 
+		String value = "0",contrasena,usuario,tarjeta,opcion,tarj,saldo;
 		Scanner input = new Scanner(System.in);
 		while(!value.equals("3")) {
 			System.out.println("Seleccione una opción: ");
@@ -57,7 +57,36 @@ public class Cliente extends UnicastRemoteObject{
 				System.out.println("Ingrese su contraseña");
 				contrasena = input.next();
 				if(tarjeta.equals("0000")&&contrasena.equals("0000")) {//ADMIN
-					System.out.println("Ingreso del admin");
+					System.out.println(" Seleccione una opción");
+					System.out.println("1. Agregar saldo");
+					System.out.println("2. Agregar producto");
+					System.out.println("3. Salir");
+
+					opcion = input.next();
+					switch(opcion) {
+					case "1":{
+						System.out.println("Ingrese la tarjeta que va a recargar");
+						tarj = input.next();
+						System.out.println("Ingrese el saldo que va a recargar");
+						saldo = input.next();
+						recargarTarjeta(tarj,saldo);
+						break;
+					}case "2":{
+						String nombre,cantidad,precio;
+						System.out.println("Ingrese el nombre del producto");
+						nombre = input.next();
+						System.out.println("Ingrese la cantidad disponible");
+						cantidad = input.next();
+						System.out.println("Ingrese el precio del producto");
+						precio = input.next();
+						productos = i.getProductos();
+						agregarProducto(nombre,cantidad,precio);
+						break;
+					}
+					case "3":{
+						break;
+					}
+					}
 				}
 				else if(j.autenticarUsuario(contrasena,tarjeta)){
 					Cuenta cuenta = new Cuenta();
@@ -129,6 +158,32 @@ public class Cliente extends UnicastRemoteObject{
 			}
 		}
 
+	}
+	private void recargarTarjeta(String tarj, String saldo) throws RemoteException {
+		Transaccion tvRecarga = j.solicitarTransaccion();
+		Cuenta cuenta = j.getCuenta(tarj);
+		tvRecarga.adicionarObjetoEscritura(j.getCuenta(tarj));
+		tvRecarga.adicionarObjetoLectura(j.getCuenta(tarj));
+		tvRecarga = j.iniciarTransaccion(tvRecarga);
+		if(tvRecarga.getEstado()==2) {
+			j.recargarTarjeta(tarj,saldo);
+		}else {
+			System.out.println("Transacción abortada");
+			j.finalizarTransaccion(tvRecarga);
+		}
+	}
+	private void agregarProducto(String nombre, String cantidadD, String precio) throws RemoteException {
+		Transaccion tvAgregar = j.solicitarTransaccion();
+		this.productos=i.getProductos();
+		tvAgregar.adicionarObjetoEscritura(productos.get(productos.size()-1));
+		tvAgregar = j.iniciarTransaccion(tvAgregar);
+		if(tvAgregar.getEstado()==2) {
+			int id = productos.size();
+			Producto p = new Producto(id, nombre, Integer.parseInt(cantidadD), Float.parseFloat(precio));
+		}else {
+			System.out.println("Transacción abortada");
+			j.finalizarTransaccion(tvAgregar);
+		}
 	}
 	private void transaccionDeCompra(String tarjeta) throws RemoteException {
 

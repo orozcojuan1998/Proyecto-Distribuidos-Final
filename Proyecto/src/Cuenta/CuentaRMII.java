@@ -24,7 +24,8 @@ public interface CuentaRMII extends Remote{
 	public void setContrasena(String tarjeta,String contra)throws RemoteException;
 	public Transaccion iniciarTransaccion(Transaccion tv) throws RemoteException;
 	public void finalizarTransaccion(Transaccion tv)throws RemoteException;
-	public Transaccion solicitarTransaccion()throws RemoteException;
+	public Transaccion solicitarTransaccion() throws RemoteException;
+	public void recargarTarjeta(String tarj,String saldo) throws RemoteException;
     
    
     

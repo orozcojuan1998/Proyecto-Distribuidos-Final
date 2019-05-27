@@ -292,8 +292,6 @@ public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
 
 	@Override
 	public void setContrasena(String tarjeta, String contra) throws RemoteException {
-		System.out.println("TARJETA  "+tarjeta);
-		System.out.println("CONTRA  "+contra);
 		try {
 			MessageDigest digest,digest2;
 			digest = MessageDigest.getInstance("SHA-256");
@@ -315,6 +313,25 @@ public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
 			e.printStackTrace();
 		}
 				
+	}
+
+	@Override
+	public void recargarTarjeta(String tarj, String saldo) throws RemoteException {
+		try {
+			MessageDigest digest,digest2;
+			digest = MessageDigest.getInstance("SHA-256");
+			 byte[] encodedhash = digest.digest(tarj.getBytes(StandardCharsets.UTF_8));
+	            String hash = bytesToHex(encodedhash);
+	            for (Cuenta cuenta : cuentas) {
+	    			if(hash.equals(cuenta.getTarjeta())){
+	    				cuenta.setSaldo(cuenta.getSaldo()+Float.parseFloat(saldo));
+	    			}
+	    		}
+				
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	
