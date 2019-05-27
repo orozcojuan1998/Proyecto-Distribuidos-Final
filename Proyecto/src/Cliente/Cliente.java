@@ -180,6 +180,7 @@ public class Cliente extends UnicastRemoteObject{
 		if(tvAgregar.getEstado()==2) {
 			int id = productos.size();
 			Producto p = new Producto(id, nombre, Integer.parseInt(cantidadD), Float.parseFloat(precio));
+			
 		}else {
 			System.out.println("Transacción abortada");
 			j.finalizarTransaccion(tvAgregar);
