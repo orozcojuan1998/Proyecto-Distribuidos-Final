@@ -259,38 +259,75 @@ public class Cliente extends UnicastRemoteObject{
 		float total = 0;
 		boolean saldo = true;
 
-		Transaccion tv = j.solicitarTransaccion();
+		Transaccion tvCuenta = j.solicitarTransaccion();
 		for (ProductoCarrito productoCarrito : carrito) {
-			tv.adicionarObjetoEscritura(j.getCuenta(usuario));
-			tv.adicionarObjetoLectura(j.getCuenta(usuario));
 			total+= productoCarrito.getP().getPrecio();
 		}
-		tv = j.iniciarTransaccion(tv);
+		tvCuenta.adicionarObjetoEscritura(j.getCuenta(usuario));
+		tvCuenta.adicionarObjetoLectura(j.getCuenta(usuario));
+		tvCuenta = j.iniciarTransaccion(tvCuenta);
 		Cuenta cuenta = j.getCuenta(usuario);
-		Cuenta cuentaTemporal = new Cuenta(cuenta.getUsuario(), cuenta.getContrasena(), cuenta.getTarjeta(), cuenta.getSaldo());
-		System.out.println("Su saldo: "+ cuenta.getSaldo());
-		if(cuenta.getSaldo()<=total){
-			cuentaTemporal.setSaldo(cuenta.getSaldo()-total);
-			System.out.println("estado transacción: "+tv.getEstado());
-			while(tv.getEstado()==1||tv.getEstado()==-1){
-				System.out.println("estado transacción: "+tv.getEstado());
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+		
+		
+		if(cuenta.getSaldo()>=total&&tvCuenta.getEstado()!=3){
+			
+			
+			
+			Transaccion tvProductosALeer = i.solicitarTransaccion();
+			for (ProductoCarrito productoCarrito : carrito) {
+				tvProductosALeer.adicionarObjetoLectura(productoCarrito.getP());
+			}
+			tvProductosALeer = i.iniciarTransaccion(tvProductosALeer);
+			
+			if(tvProductosALeer.getEstado()==2){
+				ArrayList<ProductoCarrito> productosComprados = new ArrayList<ProductoCarrito>();
+				for (ProductoCarrito productoCarrito : carrito) {
+					if(i.getProducto(productoCarrito.getP().getID()).getCantidadDisponible()>productoCarrito.getCantidad()){
+						productosComprados.add(productoCarrito);
+					}else{
+						System.out.println("El producto "+productoCarrito.getP().getNombre()+" se ha agotado");
+					}
 				}
+			
+				i.finalizarTransaccion(tvProductosALeer);
+				Transaccion tvProductosAComprar = i.solicitarTransaccion();
+				for (ProductoCarrito productoCarrito : productosComprados) {
+					tvProductosAComprar.adicionarObjetoEscritura(productoCarrito.getP());
+				}
+				tvProductosAComprar = i.iniciarTransaccion(tvProductosAComprar);
+				if(tvProductosAComprar.getEstado()==2){
+					total = 0;
+					for (ProductoCarrito productoCarrito : productosComprados) {
+						i.disminuirCantidadDisponible(productoCarrito.getP().getID(), productoCarrito.getCantidad());
+						total+=productoCarrito.getP().getPrecio()*productoCarrito.getCantidad();
+					}
+					i.finalizarTransaccion(tvProductosAComprar);
+					System.out.println("Su saldo: "+ (cuenta.getSaldo()-total));
+					j.setSaldo(usuario, cuenta.getSaldo()-total);
+					j.finalizarTransaccion(tvCuenta);
+					
+					
+				}else{
+					System.out.println("Transacción abortada (COMPRA"+tvProductosAComprar.getEstado() +") ... intente de nuevo ");
+					i.finalizarTransaccion(tvProductosAComprar);
+					j.finalizarTransaccion(tvCuenta);
+				}
+				
+				
+			}else{
+				System.out.println("Transacción abortada (LECTURA-COMPRA) ... intente de nuevo");
+				i.finalizarTransaccion(tvProductosALeer);
+				j.finalizarTransaccion(tvCuenta);
 			}
-			if(tv.getEstado()==2){
-				cuenta = cuentaTemporal;
-				System.out.println("Iniciando compra de cada producto");
-			}else if(tv.getEstado()==3){
-				System.out.println("Transacción abortada ... verifique su saldo de nuevo");
-				saldo = false;
-			}
-			j.finalizarTransaccion(tv);
+			
+			
+			
+		}else if(tvCuenta.getEstado()==3){
+			System.out.println("Transacción abortada (CUENTA)... intente de nuevo");
+			j.finalizarTransaccion(tvCuenta);
 		}else{
 			System.out.println("Saldo insuficiente");
+			j.finalizarTransaccion(tvCuenta);
 		}
 
 
@@ -300,15 +337,14 @@ public class Cliente extends UnicastRemoteObject{
 
 
 		System.setProperty("java.security.policy", "./cliente.policy");
-		Registry registry = null;
-
+		
 
 
 		//coordinador = (CoordinadorInterface) registry.lookup("//127.0.0.1/Coordinador");
 
 		j = null;
 		try {
-			registry = LocateRegistry.getRegistry(portCuentas);
+			Registry registry = LocateRegistry.getRegistry(portCuentas);
 			j = (CuentaRMII) registry.lookup("//127.0.0.1/Cuentas");
 		}  catch (NotBoundException e) {
 			// TODO Auto-generated catch block
@@ -319,7 +355,7 @@ public class Cliente extends UnicastRemoteObject{
 
 		i = null;
 		try {
-			registry = LocateRegistry.getRegistry(portProductos);
+			Registry registry = LocateRegistry.getRegistry(portProductos);
 			i = (ProductoRMII) registry.lookup("//127.0.0.1/Productos");
 		}  catch (NotBoundException e) {
 			// TODO Auto-generated catch block

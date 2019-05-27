@@ -26,7 +26,6 @@ import Cliente.Transaccion;
 public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
 
 	private ArrayList<Transaccion> transaccionesActivas;
-	private ArrayList<Cliente> clientesParticipantes;
 	private int portCoordinador = 3000;
 	private CoordinadorInterface coordinador;
 	private int numSecuencia = 0;
@@ -159,7 +158,7 @@ public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
         TX.get(index).add(operation);
     }
     
-    public boolean validar(Transaccion tv) throws RemoteException{
+    public boolean validarForward(Transaccion tv) throws RemoteException{
     	boolean valida = true;
     	
     	for(int i= 0; i < transaccionesActivas.size(); i++){
@@ -168,7 +167,9 @@ public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
     		
     		for (Object cuentaTV : conjuntoEscrituraTV) {
 				for (Object cuentaA : conjuntoLecturaActual) {
-					if(((Cuenta) cuentaTV).getTarjeta().equals(cuentaA)){
+					Cuenta cuentaT = (Cuenta) cuentaTV;
+					Cuenta cuentaAA = (Cuenta) cuentaA;
+					if(cuentaAA.getTarjeta().equals(cuentaT.getTarjeta())){
 						return false;
 					}
 				}
@@ -215,11 +216,11 @@ public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
 	@Override
 	public Transaccion iniciarTransaccion(Transaccion tv) throws RemoteException {
 		tv.setNumTransaccion(numSecuencia++);
-		transaccionesActivas.add(tv);
 		tv.setEstado(1);
 		System.out.println("estado transacción: "+tv.getEstado());
-		if(validar(tv)){
+		if(validarForward(tv)){
 			tv.setEstado(2);
+			transaccionesActivas.add(tv);
 		}else{
 			tv.setEstado(3);
 		}
@@ -227,18 +228,18 @@ public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
 		return tv;
 	}
 
-	private boolean verificar(Transaccion tv) throws RemoteException{
-		// TODO Auto-generated method stub
-		
-		//FORWARD
-		
-		return true;
-	}
+
 
 	@Override
 	public void finalizarTransaccion(Transaccion tv) throws RemoteException {
-		transaccionesActivas.remove(tv);
-		tv.setEstado(4);
+		for (int i =0 ; i < transaccionesActivas.size(); i++) {
+			if(tv.getNumTransaccion()==transaccionesActivas.get(i).getNumTransaccion()){
+				transaccionesActivas.remove(i);
+				tv.setEstado(4);
+			}
+		}
+	
+		System.out.println("estado transacción: "+tv.getEstado()+ " no. "+ tv.getNumTransaccion());
 	}
 
 	@Override

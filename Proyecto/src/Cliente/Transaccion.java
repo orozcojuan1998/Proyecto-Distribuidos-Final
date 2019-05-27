@@ -19,7 +19,7 @@ public class Transaccion implements Serializable {
 	
 	
 	private int numTransaccion;
-	private int estado; //1 Activa, 2 preparadaCommit, 3 abortada, 4 finalizada
+	private int estado; //1 Activa, 2 preparadaCommit, 3 abortada, 4 commit
 	
 	
 	public Transaccion(){
@@ -41,49 +41,49 @@ public class Transaccion implements Serializable {
 	}
 
 
-	public List<String> getMensajesLog() {
+	public synchronized List<String> getMensajesLog() {
 		return mensajesLog;
 	}
 
 
-	public void setMensajesLog(List<String> mensajesLog) {
+	public synchronized void setMensajesLog(List<String> mensajesLog) {
 		this.mensajesLog = mensajesLog;
 	}
 
 
-	public int getEstado() {
+	public synchronized int getEstado() {
 		return estado;
 	}
 
-	public void setEstado(int estado) {
+	public synchronized void setEstado(int estado) {
 		this.estado = estado;
 	}
 
-	public void adicionarObjetoLectura(Object producto){
+	public synchronized  void adicionarObjetoLectura(Object producto){
 		conjuntoLectura.add(producto);
 		
 	}
-	public void adicionarObjetoEscritura(Object producto){
+	public synchronized void adicionarObjetoEscritura(Object producto){
 		conjuntoEscritura.add(producto);
 		
 	}
 	
-	public List<Object> getConjuntoLectura() {
+	public synchronized List<Object> getConjuntoLectura() {
 		return conjuntoLectura;
 	}
 
 
-	public void setConjuntoLectura(List<Object> conjuntoLectura) {
+	public synchronized void setConjuntoLectura(List<Object> conjuntoLectura) {
 		this.conjuntoLectura = conjuntoLectura;
 	}
 
 
-	public List<Object> getConjuntoEscritura() {
+	public synchronized List<Object> getConjuntoEscritura() {
 		return conjuntoEscritura;
 	}
 
 
-	public void setConjuntoEscritura(List<Object> conjuntoEscritura) {
+	public synchronized void setConjuntoEscritura(List<Object> conjuntoEscritura) {
 		this.conjuntoEscritura = conjuntoEscritura;
 	}
 

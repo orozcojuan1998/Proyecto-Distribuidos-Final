@@ -5,16 +5,28 @@ import java.io.FileReader;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+
+import Cliente.Transaccion;
+import Coordinador.CoordinadorInterface;
+import Cuenta.Cuenta;
 
 
 
 
 public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 
+	private List<Transaccion> transaccionesActivas;
+	private int portCoordinador = 3000;
+	private CoordinadorInterface coordinador;
+	private int numSecuencia = 0;
+	
 	public PImpleRMII() throws RemoteException {
 		super();
 		// TODO Auto-generated constructor stub
+		transaccionesActivas = Collections.synchronizedList(new ArrayList<>());;
 		leerProductos("inicioproductos.txt");
 		imprimirProductos();	
 	}
@@ -62,7 +74,7 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 	}
 
 	@Override
-	public ArrayList<Producto> getProductos() throws RemoteException {
+	public synchronized  ArrayList<Producto> getProductos() throws RemoteException {
 		ArrayList<Producto> productosTemporales = new ArrayList<>();
 		for (Producto producto : productos) {
 			productosTemporales.add(new Producto(producto.getID(), producto.getNombre(), producto.getCantidadDisponible(), producto.getPrecio()));
@@ -71,25 +83,92 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 		return productosTemporales;
 	}
 	
-	@Override
-	public boolean comprarProductos(Map<Integer, String> carrito) throws RemoteException {
 	
-			for(int i = 1; i <= productos.size(); i++){			
-				if(carrito.get(i)!=null){
-					if(productos.get(i-1).getCantidadDisponible()-Integer.parseInt(carrito.get(i))<0){
-						throw new RemoteException("Se agotaron existencias");
-					}
-					productos.get(i-1).setCantidadDisponible(productos.get(i-1).getCantidadDisponible()-Integer.parseInt(carrito.get(i)));
-				}		
-			}
-		for(int i = 0; i < productos.size(); i++){
-			Producto producto = productos.get(i);
-			System.out.println(i+1+" Cantidad despues de comprar "+producto.getCantidadDisponible());
+
+	@Override
+	public synchronized  Transaccion iniciarTransaccion(Transaccion tv) throws RemoteException {
+		tv.setNumTransaccion(numSecuencia++);
+		tv.setEstado(1);
+		System.out.println("estado transacción: "+tv.getEstado());
+		if(validarForward(tv)){
+			tv.setEstado(2);
+			transaccionesActivas.add(tv);
+		}else{
+			tv.setEstado(3);
 		}
-		
-		return true;
+		System.out.println("estado transacción: "+tv.getEstado());
+		return tv;
 	}
 
+	@Override
+	public synchronized  void finalizarTransaccion(Transaccion tv) throws RemoteException {
+		
+		
+
+		for (int i =0 ; i < transaccionesActivas.size(); i++) {
+			if(tv.getNumTransaccion()==transaccionesActivas.get(i).getNumTransaccion()){
+				transaccionesActivas.remove(i);
+				tv.setEstado(4);
+			}
+		}
+	
+		
+		System.out.println("estado transacción: "+tv.getEstado()+ " no. "+ tv.getNumTransaccion());
+	}
+	
+	public synchronized List<Transaccion> getTransaccionesActivas() {
+		return transaccionesActivas;
+	}
+
+	public synchronized void setTransaccionesActivas(ArrayList<Transaccion> transaccionesActivas) {
+		this.transaccionesActivas = transaccionesActivas;
+	}
+
+	@Override
+	public Transaccion solicitarTransaccion() throws RemoteException {
+		return new Transaccion();
+	}
+	 public synchronized  boolean validarForward(Transaccion tv) throws RemoteException{
+	    	boolean valida = true;
+	    	
+	    	for(int i= 0; i < getTransaccionesActivas().size(); i++){
+	    		List<Object> conjuntoEscrituraTV = tv.getConjuntoEscritura();
+	    		List<Object> conjuntoLecturaActual = getTransaccionesActivas().get(i).getConjuntoLectura();
+	    		
+	    		for (Object cuentaTV : conjuntoEscrituraTV) {
+					for (Object cuentaA : conjuntoLecturaActual) {
+						Producto p = (Producto)cuentaTV;
+						Producto p2 = (Producto) cuentaA;
+						if(p.getID()==p2.getID()){
+							return false;
+						}
+					}
+				}
+	    		
+	    		
+	    	}
+	    	
+	    	return valida;
+	    }
+
+	@Override
+	public Producto getProducto(int ID) throws RemoteException {
+		for (Producto producto : productos) {
+			if(producto.getID()==ID){
+				return producto;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public void disminuirCantidadDisponible(int id, int cantidad) throws RemoteException {
+		for (Producto producto : productos) {
+			if(producto.getID()==id){
+				producto.setCantidadDisponible(producto.getCantidadDisponible()-cantidad);
+			}
+		}
+	}
 	
 	
 }

@@ -1,6 +1,6 @@
 TARJETAS
 5
-1234,4,juan,contra
+1234,60,juan,contra
 4321,18,pepe,conta123
 6541,30,andres,andres123
 5246,78,ana,a1na
