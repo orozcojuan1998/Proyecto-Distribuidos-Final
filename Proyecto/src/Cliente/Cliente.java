@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import javax.swing.JOptionPane;
+
 import Coordinador.CoordinadorInterface;
 import Coordinador.TransaccionCoordinador;
 import Cuenta.Cuenta;
@@ -42,20 +44,20 @@ public class Cliente extends UnicastRemoteObject{
 	}
 	private void iniciarSesion() throws RemoteException {
 		// TODO Auto-generated method stub
-		String value = "0",contrasena,usuario,tarjeta; 
-		Scanner input = new Scanner(System.in);
+		String value = "0",tarjeta,contrasena,usuario;
+		
 		while(!value.equals("3")) {
 			System.out.println("Seleccione una opción: ");
 			System.out.println("1. Ingresar con cuenta existente");
 			System.out.println("2. Ingresar por primera vez");
 			System.out.println("3. Salir");
-			value = input.next();
+			value = JOptionPane.showInputDialog("Seleccione una opción");
+
 			switch(value) {
 			case "1":{
-				System.out.println("Ingrese su tarjeta");
-				tarjeta = input.next();
-				System.out.println("Ingrese su contraseña");
-				contrasena = input.next();
+				tarjeta = JOptionPane.showInputDialog("Escribe tu tarjeta");
+				System.out.println(tarjeta);
+				contrasena = JOptionPane.showInputDialog("Escribe tu contreseña");
 				if(tarjeta.equals("0000")&&contrasena.equals("0000")) {//ADMIN
 					System.out.println("Ingreso del admin");
 				}
@@ -78,14 +80,16 @@ public class Cliente extends UnicastRemoteObject{
 					while(nextItem){
 
 						System.out.println("Ingrese el número del producto para agregarlo al carrito de compras...");
-						int item = input.nextInt();
+						String itemS = JOptionPane.showInputDialog("Escribe tu nombre");
+						int item = Integer.parseInt(itemS);
 
 						if(!(productos.get(item).getCantidadDisponible()==0)){
 							boolean addItem = true;
 							while(addItem){
 
 								System.out.println("Ingrese la cantidad"); 
-								int num = input.nextInt();
+								String numS = JOptionPane.showInputDialog("Escribe tu nombre");
+								int num = Integer.parseInt(numS);
 
 								if(num <= productos.get(item).getCantidadDisponible()){
 									addItem = false;
@@ -93,7 +97,7 @@ public class Cliente extends UnicastRemoteObject{
 									productos.get(item).setCantidadDisponible(productos.get(item).getCantidadDisponible()-num);
 									System.out.println("Producto agregado al carrito");
 									System.out.println("¿Desea agregar más productos? 1.Sí  2. No");
-									String next = input.next();
+									String next = JOptionPane.showInputDialog("Escribe tu respuesta");
 									if(next.equals("2")){
 										nextItem = false;
 									}
@@ -114,11 +118,11 @@ public class Cliente extends UnicastRemoteObject{
 				break;
 			}
 			case "2":{
-				System.out.println("Ingrese su tarjeta");
-				tarjeta = input.next();
+				tarjeta = JOptionPane.showInputDialog("Escribe tu tarjeta");
+				System.out.println(tarjeta);
 				if(j.verificarRegistro(tarjeta)) {
 					System.out.println("Ingrese su contrasena");
-					String contra = input.next();
+					String contra = JOptionPane.showInputDialog("Escribe tu tarjeta");
 					j.setContrasena(tarjeta,contra);
 					System.out.println("Se ha registrado correctamente");
 				}else {
