@@ -204,7 +204,7 @@ public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
 				digest = MessageDigest.getInstance("SHA-256");
 				 byte[] encodedhash = digest.digest(tarjeta.getBytes(StandardCharsets.UTF_8));
 		            String hash = bytesToHex(encodedhash);
-					if(hash.equals(cuenta.getUsuario())){
+					if(hash.equals(cuenta.getTarjeta())){
 						return cuenta.getSaldo();
 					}
 			} catch (NoSuchAlgorithmException e) {
@@ -224,7 +224,7 @@ public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
 				digest = MessageDigest.getInstance("SHA-256");
 				 byte[] encodedhash = digest.digest(tarjeta.getBytes(StandardCharsets.UTF_8));
 		            String hash = bytesToHex(encodedhash);
-					if(hash.equals(cuenta.getUsuario())){
+					if(hash.equals(cuenta.getTarjeta())){
 						 cuenta.setSaldo(f);
 					}
 			} catch (NoSuchAlgorithmException e) {

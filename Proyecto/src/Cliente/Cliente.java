@@ -44,12 +44,8 @@ public class Cliente extends UnicastRemoteObject{
 
 	}
 	private void iniciarSesion() throws RemoteException {
-		// TODO Auto-generated method stub
-		JPasswordField pwd = new JPasswordField(10);
-	    int action = JOptionPane.showConfirmDialog(null, pwd,"Enter Password",JOptionPane.OK_CANCEL_OPTION);
+		// TODO Auto-generated method stub	
 		String value = "0",tarjeta,contrasena,usuario, tarj, saldo;
-		
-
 		while(!value.equals("3")) {
 			System.out.println("Seleccione una opción: ");
 			System.out.println("1. Ingresar con cuenta existente");
@@ -282,7 +278,7 @@ public class Cliente extends UnicastRemoteObject{
 		j = null;
 		try {
 			//Registry registry = LocateRegistry.getRegistry(portCuentas);
-			j = (CuentaRMII) Naming.lookup("rmi://"+"10.192.101.21:3001"+"/Cuentas");
+			j = (CuentaRMII) Naming.lookup("rmi://"+"localhost:3001"+"/Cuentas");
 			//j = (CuentaRMII) registry.lookup("10.192.101.31/Cuentas");
 		}  catch (NotBoundException e) {
 			// TODO Auto-generated catch block
@@ -294,7 +290,7 @@ public class Cliente extends UnicastRemoteObject{
 		i = null;
 		try {
 			//Registry registry = LocateRegistry.getRegistry(portProductos);
-			i = (ProductoRMII) Naming.lookup("rmi://"+"10.192.101.21:3002"+"/Productos");
+			i = (ProductoRMII) Naming.lookup("rmi://"+"localhost:3002"+"/Productos");
 			//i = (ProductoRMII) registry.lookup("10.192.101.31/Productos");
 		}  catch (NotBoundException e) {
 			// TODO Auto-generated catch block
