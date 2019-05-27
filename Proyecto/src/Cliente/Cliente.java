@@ -159,7 +159,7 @@ public class Cliente extends UnicastRemoteObject{
 			if(tvProductosALeer.getEstado()==2){
 				ArrayList<ProductoCarrito> productosComprados = new ArrayList<ProductoCarrito>();
 				for (ProductoCarrito productoCarrito : carrito) {
-					if(i.getProducto(productoCarrito.getP().getID()).getCantidadDisponible()>productoCarrito.getCantidad()){
+					if(i.getProducto(productoCarrito.getP().getID()).getCantidadDisponible()>=productoCarrito.getCantidad()){
 						productosComprados.add(productoCarrito);
 					}else{
 						System.out.println("El producto "+productoCarrito.getP().getNombre()+" se ha agotado");
