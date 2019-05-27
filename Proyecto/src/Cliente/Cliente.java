@@ -108,8 +108,7 @@ public class Cliente extends UnicastRemoteObject{
 					Boolean nextItem = true;
 					while(nextItem){
 
-						System.out.println("Ingrese el número del producto para agregarlo al carrito de compras...");
-						String itemS = JOptionPane.showInputDialog("Escribe tu nombre");
+						String itemS = JOptionPane.showInputDialog("Ingrese el número del producto para agregarlo al carrito de compras...");
 						int item = Integer.parseInt(itemS);
 
 						if(!(productos.get(item).getCantidadDisponible()==0)){
@@ -123,38 +122,37 @@ public class Cliente extends UnicastRemoteObject{
 									addItem = false;
 									carrito.add(new ProductoCarrito(productos.get(item), num));
 									productos.get(item).setCantidadDisponible(productos.get(item).getCantidadDisponible()-num);
-									System.out.println("Producto agregado al carrito");
-									System.out.println("¿Desea agregar más productos? 1.Sí  2. No");
-									String next = JOptionPane.showInputDialog("Escribe tu respuesta");
+									String next = JOptionPane.showInputDialog(null, "¿Desea agregar más productos? 1.Sí  2. No" ,"Producto agreado al carrito", JOptionPane.QUESTION_MESSAGE);
+
 									if(next.equals("2")){
 										nextItem = false;
 									}
 								}else{
-									System.out.println("Ingrese una cantidad menor o igual a: "+productos.get(item).getCantidadDisponible());
+									JOptionPane.showMessageDialog(null, "Error", "Ingrese una cantidad menor a " + productos.get(item).getCantidadDisponible(), JOptionPane.WARNING_MESSAGE);
+
 								}
 
 
 							}
 						}else{
-							System.out.println("Producto agotado");
+							JOptionPane.showMessageDialog(null, "Producto agotado", "Producto agotado", JOptionPane.WARNING_MESSAGE);
 						}
 					}
 					transaccionDeCompra(tarjeta);
 				}else {
-					System.out.println("Información inválida");
+					JOptionPane.showMessageDialog(null, "Error", "Información invalida", JOptionPane.WARNING_MESSAGE);
+
 				}
 				break;
 			}
 			case "2":{
 				tarjeta = JOptionPane.showInputDialog("Escribe tu tarjeta");
-				System.out.println(tarjeta);
 				if(j.verificarRegistro(tarjeta)) {
-					System.out.println("Ingrese su contrasena");
 					String contra = JOptionPane.showInputDialog("Escribe tu contraseña");
 					j.setContrasena(tarjeta,contra);
-					System.out.println("Se ha registrado correctamente");
+					 JOptionPane.showMessageDialog(null, "Se ha registrado correctamente");
 				}else {
-					System.out.println("Información inválida");
+					JOptionPane.showMessageDialog(null, "Error", "Información invalida", JOptionPane.ERROR_MESSAGE);
 				}
 				break;
 			}
@@ -171,7 +169,7 @@ public class Cliente extends UnicastRemoteObject{
 		if(tvRecarga.getEstado()==2) {
 			j.recargarTarjeta(tarj,saldo);
 		}else {
-			System.out.println("Transacción abortada");
+			JOptionPane.showMessageDialog(null, "Error", "Transacción abortada", JOptionPane.ERROR_MESSAGE);
 			j.finalizarTransaccion(tvRecarga);
 		}
 	}
@@ -185,7 +183,7 @@ public class Cliente extends UnicastRemoteObject{
 			Producto p = new Producto(id, nombre, Integer.parseInt(cantidadD), Float.parseFloat(precio));
 			
 		}else {
-			System.out.println("Transacción abortada");
+			JOptionPane.showMessageDialog(null, "Error", "Transacción abortada", JOptionPane.ERROR_MESSAGE);
 			j.finalizarTransaccion(tvAgregar);
 		}
 	}
@@ -221,7 +219,8 @@ public class Cliente extends UnicastRemoteObject{
 					if(i.getProducto(productoCarrito.getP().getID()).getCantidadDisponible()>=productoCarrito.getCantidad()){
 						productosComprados.add(productoCarrito);
 					}else{
-						System.out.println("El producto "+productoCarrito.getP().getNombre()+" se ha agotado");
+						JOptionPane.showMessageDialog(null, "Error", "El producto "+productoCarrito.getP().getNombre()+" se ha agotado", JOptionPane.ERROR_MESSAGE);
+
 					}
 				}
 			
@@ -238,20 +237,20 @@ public class Cliente extends UnicastRemoteObject{
 						total+=productoCarrito.getP().getPrecio()*productoCarrito.getCantidad();
 					}
 					i.finalizarTransaccion(tvProductosAComprar);
-					System.out.println("Su saldo: "+ (cuenta.getSaldo()-total));
+					JOptionPane.showMessageDialog(null, "Su saldo: "+ (cuenta.getSaldo()-total));
 					j.setSaldo(tarjeta, cuenta.getSaldo()-total);
 					j.finalizarTransaccion(tvCuenta);
 					
 					
 				}else{
-					System.out.println("Transacción abortada (COMPRA"+tvProductosAComprar.getEstado() +") ... intente de nuevo ");
+					JOptionPane.showMessageDialog(null, "Error", "Transacción abortada (COMPRA "+tvProductosAComprar.getEstado() +") ... intente de nuevo ", JOptionPane.ERROR_MESSAGE);
 					i.finalizarTransaccion(tvProductosAComprar);
 					j.finalizarTransaccion(tvCuenta);
 				}
 				
 				
 			}else{
-				System.out.println("Transacción abortada (LECTURA-COMPRA) ... intente de nuevo");
+				JOptionPane.showMessageDialog(null, "Error", "Transacción abortada (LECTURA-COMPRA) ... intente de nuevo", JOptionPane.ERROR_MESSAGE);
 				i.finalizarTransaccion(tvProductosALeer);
 				j.finalizarTransaccion(tvCuenta);
 			}
@@ -259,10 +258,10 @@ public class Cliente extends UnicastRemoteObject{
 			
 			
 		}else if(tvCuenta.getEstado()==3){
-			System.out.println("Transacción abortada (CUENTA)... intente de nuevo");
+			JOptionPane.showMessageDialog(null, "Error", "Transacción abortada (CUENTA)... intente de nuevo", JOptionPane.ERROR_MESSAGE);
 			j.finalizarTransaccion(tvCuenta);
 		}else{
-			System.out.println("Saldo insuficiente");
+			JOptionPane.showMessageDialog(null, "Error", "Saldo insuficienta", JOptionPane.ERROR_MESSAGE);
 			j.finalizarTransaccion(tvCuenta);
 		}
 
