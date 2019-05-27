@@ -185,20 +185,25 @@ public class Cliente extends UnicastRemoteObject{
 		// TODO Auto-generated method stub
 		String value = "0",contrasena,usuario,tarjeta; 
 		Scanner input = new Scanner(System.in);
-		while(!value.equals("2")) {
+		while(!value.equals("3")) {
 			System.out.println("Seleccione una opción: ");
-			System.out.println("1. Ingresar");
-			System.out.println("2. Salir");
+			System.out.println("1. Ingresar con cuenta existente");
+			System.out.println("2. Ingresar por primera vez");
+			System.out.println("3. Salir");
 			value = input.next();
 			switch(value) {
 			case "1":{
-				System.out.println("Ingrese su usuario");
-				usuario = input.next();
-				System.out.println("Ingrese su contraseña");
-				contrasena = input.next();
 				System.out.println("Ingrese su tarjeta");
 				tarjeta = input.next();
-				if(j.autenticarUsuario(usuario, contrasena,tarjeta)){
+				System.out.println("Ingrese su contraseña");
+				contrasena = input.next();
+				if(tarjeta.equals("0000")&&contrasena.equals("0000")) {//ADMIN
+					System.out.println("Ingreso del admin");
+				}
+				else if(j.autenticarUsuario(contrasena,tarjeta)){
+					Cuenta cuenta = new Cuenta();
+					cuenta=j.getCuenta(tarjeta);
+					System.out.println("Ingresó "+cuenta.getUsuario()+" con saldo: "+cuenta.getSaldo());
 					System.out.println("Ha ingresado correctamente");
 					carrito = new ArrayList<>();
 					productos = i.getProductos();
@@ -243,17 +248,30 @@ public class Cliente extends UnicastRemoteObject{
 							System.out.println("Producto agotado");
 						}
 					}
-					transaccionDeCompra(usuario);
+					transaccionDeCompra(tarjeta);
+				}else {
+					System.out.println("Información inválida");
 				}
+				break;
 			}
 			case "2":{
+				System.out.println("Ingrese su tarjeta");
+				tarjeta = input.next();
+				if(j.verificarRegistro(tarjeta)) {
+					System.out.println("Ingrese su contrasena");
+					String contra = input.next();
+					j.setContrasena(tarjeta,contra);
+					System.out.println("Se ha registrado correctamente");
+				}else {
+					System.out.println("Información inválida");
+				}
 				break;
 			}
 			}
 		}
 
 	}
-	private void transaccionDeCompra(String usuario) throws RemoteException {
+	private void transaccionDeCompra(String tarjeta) throws RemoteException {
 
 
 		float total = 0;
@@ -261,12 +279,12 @@ public class Cliente extends UnicastRemoteObject{
 
 		Transaccion tvCuenta = j.solicitarTransaccion();
 		for (ProductoCarrito productoCarrito : carrito) {
-			total+= productoCarrito.getP().getPrecio();
+			total+= productoCarrito.getP().getPrecio()*productoCarrito.getCantidad();
 		}
-		tvCuenta.adicionarObjetoEscritura(j.getCuenta(usuario));
-		tvCuenta.adicionarObjetoLectura(j.getCuenta(usuario));
+		tvCuenta.adicionarObjetoEscritura(j.getCuenta(tarjeta));
+		tvCuenta.adicionarObjetoLectura(j.getCuenta(tarjeta));
 		tvCuenta = j.iniciarTransaccion(tvCuenta);
-		Cuenta cuenta = j.getCuenta(usuario);
+		Cuenta cuenta = j.getCuenta(tarjeta);
 		
 		
 		if(cuenta.getSaldo()>=total&&tvCuenta.getEstado()!=3){
@@ -303,7 +321,7 @@ public class Cliente extends UnicastRemoteObject{
 					}
 					i.finalizarTransaccion(tvProductosAComprar);
 					System.out.println("Su saldo: "+ (cuenta.getSaldo()-total));
-					j.setSaldo(usuario, cuenta.getSaldo()-total);
+					j.setSaldo(tarjeta, cuenta.getSaldo()-total);
 					j.finalizarTransaccion(tvCuenta);
 					
 					

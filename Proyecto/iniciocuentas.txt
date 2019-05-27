@@ -1,7 +1,7 @@
 TARJETAS
 5
-1234,60,juan,contra
-4321,18,pepe,conta123
-6541,30,andres,andres123
-5246,78,ana,a1na
-8975,50,maria,mar321
+1234,60,juan
+4321,18,pepe
+6541,30,andres
+5246,78,ana
+8975,50,maria

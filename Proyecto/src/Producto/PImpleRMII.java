@@ -56,7 +56,7 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 			for(int i=0;i<nProductos;i++) {
 				linea = br.readLine();
 				String[] parts = linea.split(",");
-				Producto producto= new Producto(Integer.parseInt(parts[0]),parts[1], Integer.parseInt(parts[2]),Float.parseFloat(parts[3]));		
+				Producto producto= new Producto(Integer.parseInt(parts[0]),parts[1],Integer.parseInt(parts[3]), Float.parseFloat(parts[2]));		
 				this.productos.add(producto);
 			}
 			br.close();

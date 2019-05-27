@@ -80,10 +80,7 @@ public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
 				MessageDigest digest = MessageDigest.getInstance("SHA-256");
 	            byte[] encodedhash = digest.digest(parts[0].getBytes(StandardCharsets.UTF_8));
 	            String hash = bytesToHex(encodedhash);
-	            digest = MessageDigest.getInstance("SHA-256");
-	            encodedhash = digest.digest(parts[3].getBytes(StandardCharsets.UTF_8));
-	            String hash2 = bytesToHex(encodedhash);
-				Cuenta cuenta= new Cuenta(parts[2],hash2,hash, Float.parseFloat(parts[1]));
+				Cuenta cuenta= new Cuenta(parts[2],"",hash, Float.parseFloat(parts[1]));
 				this.cuentas.add(cuenta);
 			}
 			imprimirCuentas();
@@ -117,23 +114,21 @@ public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
 	}
 
 	@Override
-	public boolean autenticarUsuario(String u, String c,String t) throws RemoteException {
+	public boolean autenticarUsuario(String c,String t) throws RemoteException {
 		for (Cuenta cuenta : cuentas) {
 			MessageDigest digest;
 			try {
 				digest = MessageDigest.getInstance("SHA-256");
-            byte[] encodedhash = digest.digest(c.getBytes(StandardCharsets.UTF_8));
-            String hash = bytesToHex(encodedhash);
-            MessageDigest digest2 = MessageDigest.getInstance("SHA-256");
-            byte[] encodedhash2 = digest2.digest(t.getBytes(StandardCharsets.UTF_8));
-            String hash2 = bytesToHex(encodedhash2);
-			System.out.println(hash);
-			System.out.println(hash2);
-			System.out.println(u);
-
-            if(cuenta.getContrasena().equals(hash)&&cuenta.getUsuario().equals(u)&&cuenta.getTarjeta().equals(hash2)) {
-				return true;
-			}
+	            byte[] encodedhash = digest.digest(c.getBytes(StandardCharsets.UTF_8));
+	            String hash = bytesToHex(encodedhash);
+	            MessageDigest digest2 = MessageDigest.getInstance("SHA-256");
+	            byte[] encodedhash2 = digest2.digest(t.getBytes(StandardCharsets.UTF_8));
+	            String hash2 = bytesToHex(encodedhash2);
+				System.out.println(hash+"--"+hash2);
+				System.out.println(cuenta.getContrasena()+"--"+cuenta.getTarjeta());
+	            if(cuenta.getContrasena().equals(hash)&&cuenta.getTarjeta().equals(hash2)) {
+					return true;
+				}
 			} catch (NoSuchAlgorithmException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -182,32 +177,61 @@ public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
     }
 
 	@Override
-	public synchronized Cuenta getCuenta(String usuario)throws RemoteException  {
+	public synchronized Cuenta getCuenta(String tarjeta)throws RemoteException  {
+		try {
+		MessageDigest digest;
+		digest = MessageDigest.getInstance("SHA-256");
+		byte[] encodedhash = digest.digest(tarjeta.getBytes(StandardCharsets.UTF_8));
+        String hash = bytesToHex(encodedhash);
 		for (Cuenta cuenta : cuentas) {
-			if(usuario.equals(cuenta.getUsuario())){
-				return cuenta;
-			}
+				if(hash.equals(cuenta.getTarjeta())){
+						return cuenta;
+					}
+			} 
+           
+		}catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		return null;
 	}
 
 	@Override
-	public float getSaldo(String usuario) throws RemoteException {
-		// TODO Auto-generated method stub
+	public float getSaldo(String tarjeta) throws RemoteException {
 		for (Cuenta cuenta : cuentas) {
-			if(usuario.equals(cuenta.getUsuario())){
-				return cuenta.getSaldo();
+			MessageDigest digest;
+			try {
+				digest = MessageDigest.getInstance("SHA-256");
+				 byte[] encodedhash = digest.digest(tarjeta.getBytes(StandardCharsets.UTF_8));
+		            String hash = bytesToHex(encodedhash);
+					if(hash.equals(cuenta.getUsuario())){
+						return cuenta.getSaldo();
+					}
+			} catch (NoSuchAlgorithmException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+           
 		}
 		return 0;
 	}
 
 	@Override
-	public void setSaldo(String usuario, float f) throws RemoteException {
+	public void setSaldo(String tarjeta, float f) throws RemoteException {
 		for (Cuenta cuenta : cuentas) {
-			if(usuario.equals(cuenta.getUsuario())){
-				cuenta.setSaldo(f);
+			MessageDigest digest;
+			try {
+				digest = MessageDigest.getInstance("SHA-256");
+				 byte[] encodedhash = digest.digest(tarjeta.getBytes(StandardCharsets.UTF_8));
+		            String hash = bytesToHex(encodedhash);
+					if(hash.equals(cuenta.getUsuario())){
+						 cuenta.setSaldo(f);
+					}
+			} catch (NoSuchAlgorithmException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+           
 		}
 	
 		
@@ -245,6 +269,52 @@ public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
 	@Override
 	public Transaccion solicitarTransaccion() throws RemoteException {
 		return new Transaccion();
+	}
+
+	@Override
+	public boolean verificarRegistro(String tarjeta) throws RemoteException {
+		for (Cuenta cuenta : cuentas) {
+			MessageDigest digest;
+			try {
+					digest = MessageDigest.getInstance("SHA-256");
+					byte[] encodedhash = digest.digest(tarjeta.getBytes(StandardCharsets.UTF_8));
+		            String hash = bytesToHex(encodedhash);
+					if(hash.equals(cuenta.getTarjeta())&&cuenta.getContrasena().equals("")){
+						return true;
+					}
+			} catch (NoSuchAlgorithmException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public void setContrasena(String tarjeta, String contra) throws RemoteException {
+		System.out.println("TARJETA  "+tarjeta);
+		System.out.println("CONTRA  "+contra);
+		try {
+			MessageDigest digest,digest2;
+			digest = MessageDigest.getInstance("SHA-256");
+			digest2 = MessageDigest.getInstance("SHA-256");
+			 byte[] encodedhash = digest.digest(tarjeta.getBytes(StandardCharsets.UTF_8));
+			 byte[] encodedhash2 = digest.digest(contra.getBytes(StandardCharsets.UTF_8));
+	            String hash = bytesToHex(encodedhash);
+	            String hash2 = bytesToHex(encodedhash2);
+	            System.out.println("TARJETA HASH "+hash);
+	            for (Cuenta cuenta : cuentas) {
+	    			if(hash.equals(cuenta.getTarjeta())){
+	    				
+	    				cuenta.setContrasena(hash2);
+	    			}
+	    		}
+				
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+				
 	}
 
 	

@@ -10,6 +10,10 @@ public class Cuenta implements Serializable{
 	
 	
 	
+	public Cuenta() {
+		super();
+	}
+	
 	public Cuenta(String usuario, String contrasena, String tarjeta, float saldo) {
 		super();
 		this.usuario = usuario;
