@@ -48,23 +48,15 @@ public class Cliente extends UnicastRemoteObject{
 		
 		String value = "0",tarjeta,contrasena,usuario, tarj, saldo;
 		while(!value.equals("3")) {
-			System.out.println("Seleccione una opción: ");
-			System.out.println("1. Ingresar con cuenta existente");
-			System.out.println("2. Ingresar por primera vez");
-			System.out.println("3. Salir");
-			value = JOptionPane.showInputDialog("Seleccione una opción");
+			value =  JOptionPane.showInputDialog("Seleccione una opción: \n" + "1.  Ingresar con cuenta existente \n" + "2. Ingresar por primera vez \n" + "3. Salir");
 
 			switch(value) {
 			case "1":{
 				tarjeta = JOptionPane.showInputDialog("Escribe tu tarjeta");
-				 contrasena = JOptionPane.showInputDialog(null, "Contraseña" ,JOptionPane.OK_CANCEL_OPTION);
+				 contrasena = JOptionPane.showInputDialog("Escribe tu contraseña");
 				if(tarjeta.equals("0000")&&contrasena.equals("0000")) {//ADMIN
-					System.out.println(" Seleccione una opción");
-					System.out.println("1. Agregar saldo");
-					System.out.println("2. Agregar producto");
-					System.out.println("3. Salir");
 
-					String opcion = JOptionPane.showInputDialog("Seleccione una opción");
+					String opcion = JOptionPane.showInputDialog("Seleccione una opción: \n" + "1. Agregar saldo \n" + "2. Agregar producto \n" + "3. Salir");
 					switch(opcion) {
 					case "1":{						
 						tarj = JOptionPane.showInputDialog("Ingrese la tarjeta que va a recargar");
@@ -90,8 +82,7 @@ public class Cliente extends UnicastRemoteObject{
 				else if(j.autenticarUsuario(contrasena,tarjeta)){
 					Cuenta cuenta = new Cuenta();
 					cuenta=j.getCuenta(tarjeta);
-					System.out.println("Ingresó "+cuenta.getUsuario()+" con saldo: "+cuenta.getSaldo());
-					JOptionPane.showMessageDialog(null, "Ha ingresado correctamente");
+					JOptionPane.showMessageDialog(null, "Ingresó "+cuenta.getUsuario()+" con saldo: "+cuenta.getSaldo());
 					carrito = new ArrayList<>();
 					productos = i.getProductos();
 					System.out.println("CATÁLOGO DE PRODUCTOS");
