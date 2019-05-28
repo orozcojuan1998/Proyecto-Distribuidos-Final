@@ -497,7 +497,7 @@ public class Cliente extends UnicastRemoteObject{
 							}
 						}
 						
-						JOptionPane.showMessageDialog(null, "Su saldo: "+ (cuenta.getSaldo()-total));
+						JOptionPane.showMessageDialog(null, "Compra realizada con éxito, su nuevo saldo: "+ (cuenta.getSaldo()-total));
 						
 						while(true) {
 							try {
