@@ -44,7 +44,8 @@ public class Cliente extends UnicastRemoteObject{
 
 	}
 	private void iniciarSesion() throws RemoteException {
-		// TODO Auto-generated method stub	
+		// TODO Auto-generated method stub
+		
 		String value = "0",tarjeta,contrasena,usuario, tarj, saldo;
 		while(!value.equals("3")) {
 			System.out.println("Seleccione una opción: ");
@@ -56,8 +57,7 @@ public class Cliente extends UnicastRemoteObject{
 			switch(value) {
 			case "1":{
 				tarjeta = JOptionPane.showInputDialog("Escribe tu tarjeta");
-				System.out.println(tarjeta);
-				contrasena = JOptionPane.showInputDialog("Escribe tu contreseña");
+				 contrasena = JOptionPane.showInputDialog(null, "Contraseña" ,JOptionPane.OK_CANCEL_OPTION);
 				if(tarjeta.equals("0000")&&contrasena.equals("0000")) {//ADMIN
 					System.out.println(" Seleccione una opción");
 					System.out.println("1. Agregar saldo");
