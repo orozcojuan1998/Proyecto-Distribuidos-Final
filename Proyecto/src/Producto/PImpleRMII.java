@@ -61,7 +61,6 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 		
 		
 		String linea;
-		System.out.println("Hola");
 		try {
 			FileReader fr = new FileReader(x);
 			BufferedReader br = new BufferedReader(fr);
@@ -104,7 +103,7 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 	public synchronized  Transaccion iniciarTransaccion(Transaccion tv) throws RemoteException {
 		tv.setNumTransaccion(numSecuencia++);
 		tv.setEstado(1);
-		System.out.println("estado transacción: "+tv.getEstado());
+		System.out.println("Estado transacción: "+tv.getEstado());
 		if(validarForward(tv)){
 			tv.setEstado(2);
 			transaccionesActivas.add(tv);
@@ -112,7 +111,7 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 		}else{
 			tv.setEstado(3);
 		}
-		System.out.println("estado transacción: "+tv.getEstado());
+		System.out.println("Estado transacción: "+tv.getEstado());
 		return tv;
 	}
 
@@ -132,7 +131,7 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 		}
 	
 		
-		System.out.println("estado transacción: "+tv.getEstado()+ " no. "+ tv.getNumTransaccion());
+		System.out.println("Estado transacción: "+tv.getEstado()+ " no. "+ tv.getNumTransaccion());
 	}
 	
 	public synchronized List<Transaccion> getTransaccionesActivas() {
