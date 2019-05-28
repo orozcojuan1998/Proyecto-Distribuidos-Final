@@ -1,7 +1,14 @@
 package Producto;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
@@ -23,16 +30,24 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 	private CoordinadorInterface coordinador;
 	private int numSecuencia = 0;
 	
+	
 	public PImpleRMII() throws RemoteException {
 		super();
 		// TODO Auto-generated constructor stub
+		
+		
+		
 		transaccionesActivas = Collections.synchronizedList(new ArrayList<>());;
-		leerProductos("inicioproductos.txt");
+		boolean persistencia = intentarLeerPiedra();
+		if(!persistencia){
+			leerProductos("inicioproductos.txt");
+		}
+		
 		imprimirProductos();	
 	}
 
 	private static final long serialVersionUID = 1L;
-	private ArrayList<Producto> productos = new ArrayList<Producto>(); 
+	private List<Producto> productos = new ArrayList<Producto>(); 
 
 	@Override
 	public String saludar(String x) throws RemoteException {
@@ -108,6 +123,9 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 		for (int i =0 ; i < transaccionesActivas.size(); i++) {
 			if(tv.getNumTransaccion()==transaccionesActivas.get(i).getNumTransaccion()){
 				transaccionesActivas.remove(i);
+				if(!(tv.getEstado()==3)){
+					escribirEnPiedra();
+				}
 				tv.setEstado(4);
 			}
 		}
@@ -191,4 +209,69 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 		p.setCantidadDisponible(p.getCantidadDisponible()+parseInt);
 		
 	}
+	
+	public void escribirEnPiedra(){
+		File fichero = new File("/PersistenciaServidor");
+		
+		PiedraProductos piedra = new PiedraProductos();
+		piedra.setProductos(productos);
+		piedra.setTransaccionesActivas(transaccionesActivas);
+		piedra.setNumSecuencia(numSecuencia);
+		
+		try {
+			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fichero));
+			oos.writeObject(piedra);
+			oos.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	public boolean intentarLeerPiedra(){
+		File fichero = new File("/PersistenciaServidor");
+		
+		try {
+			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fichero));
+			PiedraProductos p =(PiedraProductos) ois.readObject();
+			if(p!=null){
+				setNumSecuencia(p.getNumSecuencia());
+				setProductos(p.getProductos());
+				setTransaccionesActivas(p.getTransaccionesActivas());
+				
+			}else{
+				return false;
+			}
+			
+		} catch (FileNotFoundException e) {
+			return false;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			return false;
+		}
+		return true;
+	}
+
+	public int getNumSecuencia() {
+		return numSecuencia;
+	}
+
+	public void setNumSecuencia(int numSecuencia) {
+		this.numSecuencia = numSecuencia;
+	}
+
+	public void setTransaccionesActivas(List<Transaccion> transaccionesActivas) {
+		this.transaccionesActivas = transaccionesActivas;
+	}
+
+	public void setProductos(List<Producto> productos) {
+		this.productos = productos;
+	}
+	
+	
 }

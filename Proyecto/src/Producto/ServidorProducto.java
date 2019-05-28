@@ -9,6 +9,9 @@ import java.rmi.registry.Registry;
 public class ServidorProducto {
 	public ServidorProducto() throws RemoteException, MalformedURLException {
 		
+		
+		
+		
 		ProductoRMII i = new PImpleRMII();
 		System.setProperty("java.security.policy", "./cliente.policy");
 		
