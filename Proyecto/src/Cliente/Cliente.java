@@ -69,7 +69,7 @@ public class Cliente extends UnicastRemoteObject{
 					}case "2":{
 						String nombre,cantidad,precio="0";
 						nombre = JOptionPane.showInputDialog("Ingrese el nombre del producto");
-						cantidad = JOptionPane.showInputDialog("Ingrese la cantidad disponible");
+						cantidad = JOptionPane.showInputDialog("Ingrese la cantidad ");
 						Producto p = null;
 						while(true) {
 							try {
@@ -82,6 +82,7 @@ public class Cliente extends UnicastRemoteObject{
 						
 						if(p == null){
 							precio = JOptionPane.showInputDialog("Ingrese el precio del producto");
+							JOptionPane.showMessageDialog(null, "Se ha agregado el producto correctamente");
 						}
 						while(true) {
 							try {
