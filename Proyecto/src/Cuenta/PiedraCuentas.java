@@ -1,6 +1,7 @@
 package Cuenta;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import Cliente.Transaccion;
@@ -18,7 +19,8 @@ public class PiedraCuentas implements Serializable{
 	private int numSecuencia = 0;
 	
 	public PiedraCuentas() {
-		// TODO Auto-generated constructor stub
+		cuentas = new ArrayList<Cuenta>();
+		transaccionesActivas = new ArrayList<Transaccion>();
 	}
 
 	public List<Cuenta> getCuentas() {
