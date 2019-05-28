@@ -37,8 +37,8 @@ public class Cliente extends UnicastRemoteObject{
 	private static CuentaRMII j;
 	private static ProductoRMII i;
 
-	private static String URIProductos= "rmi://"+"localhost:3002"+"/Productos";
-	private static String URICuentas = "rmi://"+"localhost:3001"+"/Cuentas";
+	private static String URIProductos= "rmi://"+"10.192.101.15:3002"+"/Productos";
+	private static String URICuentas = "rmi://"+"10.192.101.31:3001"+"/Cuentas";
 
 	protected Cliente() throws Exception {
 		super();
