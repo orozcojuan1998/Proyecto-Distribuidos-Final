@@ -19,5 +19,8 @@ public interface ProductoRMII extends Remote{
 	public  void finalizarTransaccion(Transaccion tv)throws RemoteException;
 	public Transaccion solicitarTransaccion()throws RemoteException;
 	public void disminuirCantidadDisponible(int id, int cantidad) throws RemoteException;
+	public void agregarProducto(Producto p) throws RemoteException;
+	public Producto getProductoNombre(String nombre) throws RemoteException;
+	public void aumentarCantidadProducto(int id, int parseInt)throws RemoteException;
 
 }

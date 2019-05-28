@@ -16,7 +16,7 @@ public class ServidorProducto {
 		try {
 			//Registry registry = LocateRegistry.createRegistry(3002);
 			//registry.rebind("//10.192.101.31/Productos", i);
-			System.setProperty("java.rmi.server.hostname","10.192.101.31");
+			//System.setProperty("java.rmi.server.hostname","10.192.101.31");
 			LocateRegistry.createRegistry(3002);
 			Naming.rebind("rmi://localhost:3002/Productos",i);
 		} catch (RemoteException e) {

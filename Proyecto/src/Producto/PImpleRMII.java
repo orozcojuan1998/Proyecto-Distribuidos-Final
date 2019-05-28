@@ -169,6 +169,26 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 			}
 		}
 	}
-	
-	
+	@Override
+	public void agregarProducto(Producto p) {
+		productos.add(p);
+	}
+
+	@Override
+	public Producto getProductoNombre(String nombre) {
+		for (Producto producto : productos) {
+			if(producto.getNombre().equals(nombre)){
+				return producto;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public void aumentarCantidadProducto(int id, int parseInt) throws RemoteException {
+		
+		Producto p = getProducto(id);
+		p.setCantidadDisponible(p.getCantidadDisponible()+parseInt);
+		
+	}
 }

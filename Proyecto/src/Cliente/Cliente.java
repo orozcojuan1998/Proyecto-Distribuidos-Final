@@ -64,11 +64,13 @@ public class Cliente extends UnicastRemoteObject{
 						JOptionPane.showMessageDialog(null, "Se ha recargado la tarjeta correctamente");
 						break;
 					}case "2":{
-						String nombre,cantidad,precio;
+						String nombre,cantidad,precio="0";
 						nombre = JOptionPane.showInputDialog("Ingrese el nombre del producto");
 						cantidad = JOptionPane.showInputDialog("Ingrese la cantidad disponible");
-						System.out.println("Ingrese el precio del producto");
-						precio = JOptionPane.showInputDialog("Ingrese el precio del producto");
+						Producto p = i.getProductoNombre(nombre);
+						if(p == null){
+							precio = JOptionPane.showInputDialog("Ingrese el precio del producto");
+						}
 						try {
 							productos = i.getProductos();
 						}
@@ -102,32 +104,36 @@ public class Cliente extends UnicastRemoteObject{
 
 						String itemS = JOptionPane.showInputDialog("Ingrese el número del producto para agregarlo al carrito de compras...");
 						int item = Integer.parseInt(itemS);
+						if(item<productos.size()){
+							if(!(productos.get(item).getCantidadDisponible()==0)){
+								boolean addItem = true;
+								while(addItem){
 
-						if(!(productos.get(item).getCantidadDisponible()==0)){
-							boolean addItem = true;
-							while(addItem){
+									String numS = JOptionPane.showInputDialog("Ingrese la cantidad");
+									int num = Integer.parseInt(numS);
 
-								String numS = JOptionPane.showInputDialog("Ingrese la cantidad");
-								int num = Integer.parseInt(numS);
+									if(num <= productos.get(item).getCantidadDisponible()){
+										addItem = false;
+										carrito.add(new ProductoCarrito(productos.get(item), num));
+										productos.get(item).setCantidadDisponible(productos.get(item).getCantidadDisponible()-num);
+										String next = JOptionPane.showInputDialog(null, "¿Desea agregar más productos? 1.Sí  2. No" ,"Producto agreado al carrito", JOptionPane.QUESTION_MESSAGE);
 
-								if(num <= productos.get(item).getCantidadDisponible()){
-									addItem = false;
-									carrito.add(new ProductoCarrito(productos.get(item), num));
-									productos.get(item).setCantidadDisponible(productos.get(item).getCantidadDisponible()-num);
-									String next = JOptionPane.showInputDialog(null, "¿Desea agregar más productos? 1.Sí  2. No" ,"Producto agreado al carrito", JOptionPane.QUESTION_MESSAGE);
+										if(next.equals("2")){
+											nextItem = false;
+										}
+									}else{
+										JOptionPane.showMessageDialog(null, "Error", "Ingrese una cantidad menor a " + productos.get(item).getCantidadDisponible(), JOptionPane.WARNING_MESSAGE);
 
-									if(next.equals("2")){
-										nextItem = false;
 									}
-								}else{
-									JOptionPane.showMessageDialog(null, "Error", "Ingrese una cantidad menor a " + productos.get(item).getCantidadDisponible(), JOptionPane.WARNING_MESSAGE);
+
 
 								}
-
-
+							}else{
+								JOptionPane.showMessageDialog(null, "Producto agotado", "Producto agotado", JOptionPane.WARNING_MESSAGE);
 							}
-						}else{
-							JOptionPane.showMessageDialog(null, "Producto agotado", "Producto agotado", JOptionPane.WARNING_MESSAGE);
+						}
+						else{
+							JOptionPane.showMessageDialog(null, "El número del producto no existe", "Producto inexistente", JOptionPane.WARNING_MESSAGE);
 						}
 					}
 					transaccionDeCompra(tarjeta);
@@ -169,18 +175,30 @@ public class Cliente extends UnicastRemoteObject{
 		j.finalizarTransaccion(tvRecarga);
 	}
 	private void agregarProducto(String nombre, String cantidadD, String precio) throws RemoteException {
-		Transaccion tvAgregar = j.solicitarTransaccion();
+		Transaccion tvAgregar = i.solicitarTransaccion();
 		this.productos=i.getProductos();
-		tvAgregar.adicionarObjetoEscritura(productos.get(productos.size()-1));
-		tvAgregar = j.iniciarTransaccion(tvAgregar);
+		Producto p = i.getProductoNombre(nombre);
+		if(p==null){
+			tvAgregar.adicionarObjetoLectura(productos.get(productos.size()-1));
+		}
+		else{
+			tvAgregar.adicionarObjetoEscritura(p);
+			tvAgregar.adicionarObjetoLectura(p);
+		}
+		tvAgregar = i.iniciarTransaccion(tvAgregar);
 		if(tvAgregar.getEstado()==2) {
 			int id = productos.size();
-			Producto p = new Producto(id, nombre, Integer.parseInt(cantidadD), Float.parseFloat(precio));
+			if(p==null){
+				p = new Producto(id, nombre, Integer.parseInt(cantidadD), Float.parseFloat(precio));
+				i.agregarProducto(p);
+			}else{
+				i.aumentarCantidadProducto(p.getID(), Integer.parseInt(cantidadD));
+			}
 			
 		}else {
 			JOptionPane.showMessageDialog(null, "Error", "Transacción abortada", JOptionPane.ERROR_MESSAGE);
 		}
-		j.finalizarTransaccion(tvAgregar);
+		i.finalizarTransaccion(tvAgregar);
 
 	}
 	private void transaccionDeCompra(String tarjeta) throws RemoteException {
