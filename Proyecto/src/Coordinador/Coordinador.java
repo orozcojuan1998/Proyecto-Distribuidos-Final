@@ -75,25 +75,40 @@ public class Coordinador extends UnicastRemoteObject implements CoordinadorInter
 	}
 	@Override
 	public void vote(String abortOrCommit, int participantNum) throws RemoteException {
-		
+		if(abortOrCommit.equals("doCommit")){
+			for (Participante participante : participantes) {
+				if(participante.getNum()==participantNum){
+					participante.setEstado(4);
+				}
+			}
+		}else if(abortOrCommit.equals("abort")){
+			for (Participante participante : participantes) {
+				if(participante.getNum()==participantNum){
+					participante.setEstado(3);
+				}
+			}
+		}
+		else if(abortOrCommit.equals("prepareCommit")){
+			for (Participante participante : participantes) {
+				if(participante.getNum()==participantNum){
+					participante.setEstado(2);
+				}
+			}
+		}
 	}
 	@Override
-	public void ack(String abortOrCommit, int participantNum) throws RemoteException {
-		// TODO Auto-generated method stub
+	public int ack(String abortOrCommit, int participantNum) throws RemoteException {
 		
+		for (Participante participante : participantes) {
+			if(participante.getNum()==participantNum){
+				return participante.getEstado();
+			}
+		}
+		return 0;
 	}
 	@Override
 	public void addParticipant(Participante participant, int participantNum) throws RemoteException {
 		participantes.add(participant);
 	}
-	@Override
-	public int iniciarTransaccionCompra(ArrayList<ProductoCarrito> carrito, String usuario, TransaccionCoordinador tcoo) throws RemoteException {
-		
 	
-		
-		
-		
-		return numSecuencia;
-		
-	}
 }

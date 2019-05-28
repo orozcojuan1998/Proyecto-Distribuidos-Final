@@ -10,6 +10,7 @@ public class Participante implements ParticipanteInterface {
 	private Transaccion tv;
 	private int num;
 	private int estado;
+	private Coordinador coordinador;
 	
 	public Participante(Transaccion tv, CoordinadorInterface coordinador, int num) throws RemoteException {	
 		estado = -1;
@@ -45,18 +46,18 @@ public class Participante implements ParticipanteInterface {
 	@Override
 	public void prepareCommit() throws RemoteException {
 		estado = 1;
+		coordinador.vote("prepareCommit", num);
 	}
 
 	@Override
 	public void doAbort() throws RemoteException {
-		// TODO Auto-generated method stub
+		coordinador.vote("abort", num);
 		
 	}
 
 	@Override
 	public void doCommit() throws RemoteException {
-		// TODO Auto-generated method stub
-		
+		coordinador.vote("doCommit", num);
 	}
 
 

@@ -10,8 +10,8 @@ import Cliente.ProductoCarrito;
 
 public interface CoordinadorInterface extends Remote{
 	public void vote(String abortOrCommit, int participantNum) throws RemoteException;
-	public void ack(String abortOrCommit, int participantNum) throws RemoteException;
+	public int ack(String abortOrCommit, int participantNum) throws RemoteException;
 	public void addParticipant(Participante participant, int participantNum) throws RemoteException;
-	public int iniciarTransaccionCompra(ArrayList<ProductoCarrito> carrito, String usuario, TransaccionCoordinador tcoo) throws RemoteException;;
+	
 	
 }
