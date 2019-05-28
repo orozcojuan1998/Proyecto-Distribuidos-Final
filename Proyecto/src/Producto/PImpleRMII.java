@@ -108,6 +108,7 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 		if(validarForward(tv)){
 			tv.setEstado(2);
 			transaccionesActivas.add(tv);
+			escribirEnPiedra();
 		}else{
 			tv.setEstado(3);
 		}
@@ -123,7 +124,7 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 		for (int i =0 ; i < transaccionesActivas.size(); i++) {
 			if(tv.getNumTransaccion()==transaccionesActivas.get(i).getNumTransaccion()){
 				transaccionesActivas.remove(i);
-				if(!(tv.getEstado()==3)){
+				if(tv.getEstado()==2){
 					escribirEnPiedra();
 				}
 				tv.setEstado(4);
@@ -211,7 +212,7 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 	}
 	
 	public void escribirEnPiedra(){
-		File fichero = new File("/PersistenciaServidor");
+		File fichero = new File("/PersistenciaServidorProductos");
 		
 		PiedraProductos piedra = new PiedraProductos();
 		piedra.setProductos(productos);
@@ -232,10 +233,10 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 		
 	}
 	public boolean intentarLeerPiedra(){
-		File fichero = new File("/PersistenciaServidor");
-		
+		File fichero = new File("/PersistenciaServidorProductos");
+		ObjectInputStream ois = null;
 		try {
-			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fichero));
+			ois = new ObjectInputStream(new FileInputStream(fichero));
 			PiedraProductos p =(PiedraProductos) ois.readObject();
 			if(p!=null){
 				setNumSecuencia(p.getNumSecuencia());
@@ -243,15 +244,22 @@ public class PImpleRMII extends UnicastRemoteObject implements ProductoRMII {
 				setTransaccionesActivas(p.getTransaccionesActivas());
 				
 			}else{
+				ois.close();
 				return false;
 			}
-			
+			ois.close();
 		} catch (FileNotFoundException e) {
 			return false;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
+			try {
+				ois.close();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			return false;
 		}
 		return true;

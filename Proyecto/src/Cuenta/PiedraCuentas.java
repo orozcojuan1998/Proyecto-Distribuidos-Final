@@ -1,9 +1,49 @@
 package Cuenta;
 
-public class PiedraCuentas {
+import java.io.Serializable;
+import java.util.List;
 
+import Cliente.Transaccion;
+import Producto.Producto;
+
+public class PiedraCuentas implements Serializable{
+
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private List<Cuenta> cuentas;
+	private List<Transaccion> transaccionesActivas;
+	private int numSecuencia = 0;
+	
 	public PiedraCuentas() {
 		// TODO Auto-generated constructor stub
 	}
 
+	public List<Cuenta> getCuentas() {
+		return cuentas;
+	}
+
+	public void setCuentas(List<Cuenta> cuentas) {
+		this.cuentas = cuentas;
+	}
+
+	public List<Transaccion> getTransaccionesActivas() {
+		return transaccionesActivas;
+	}
+
+	public void setTransaccionesActivas(List<Transaccion> transaccionesActivas) {
+		this.transaccionesActivas = transaccionesActivas;
+	}
+
+	public int getNumSecuencia() {
+		return numSecuencia;
+	}
+
+	public void setNumSecuencia(int numSecuencia) {
+		this.numSecuencia = numSecuencia;
+	}
+
+	
 }

@@ -37,13 +37,16 @@ public class Cliente extends UnicastRemoteObject{
 	private static CuentaRMII j;
 	private static ProductoRMII i;
 
-	protected Cliente() throws RemoteException, NotBoundException {
+	private static String URIProductos= "rmi://"+"localhost:3002"+"/Productos";
+	private static String URICuentas = "rmi://"+"localhost:3001"+"/Cuentas";
+
+	protected Cliente() throws Exception {
 		super();
 
 		iniciarSesion();
 
 	}
-	private void iniciarSesion() throws RemoteException {
+	private void iniciarSesion() throws Exception {
 		// TODO Auto-generated method stub
 		String value = "0",tarjeta,contrasena,usuario, tarj, saldo;
 		while(!value.equals("3")) {
@@ -52,7 +55,7 @@ public class Cliente extends UnicastRemoteObject{
 			switch(value) {
 			case "1":{
 				tarjeta = JOptionPane.showInputDialog("Escribe tu tarjeta");
-				 contrasena = JOptionPane.showInputDialog("Escribe tu contraseña");
+				contrasena = JOptionPane.showInputDialog("Escribe tu contraseña");
 				if(tarjeta.equals("0000")&&contrasena.equals("0000")) {//ADMIN
 
 					String opcion = JOptionPane.showInputDialog("Seleccione una opción: \n" + "1. Agregar saldo \n" + "2. Agregar producto \n" + "3. Salir");
@@ -67,15 +70,26 @@ public class Cliente extends UnicastRemoteObject{
 						String nombre,cantidad,precio="0";
 						nombre = JOptionPane.showInputDialog("Ingrese el nombre del producto");
 						cantidad = JOptionPane.showInputDialog("Ingrese la cantidad disponible");
-						Producto p = i.getProductoNombre(nombre);
+						Producto p = null;
+						while(true) {
+							try {
+								p = i.getProductoNombre(nombre);
+								break;
+							} catch (java.rmi.ConnectException e) {
+								reconectarServidorProductos();
+							}
+						}
+						
 						if(p == null){
 							precio = JOptionPane.showInputDialog("Ingrese el precio del producto");
 						}
-						try {
-							productos = i.getProductos();
-						}
-						catch(java.rmi.ConnectException e) {
-							
+						while(true) {
+							try {
+								productos = i.getProductos();
+								break;
+							} catch (java.rmi.ConnectException e) {
+								reconectarServidorProductos();
+							}
 						}
 						agregarProducto(nombre,cantidad,precio);
 						break;
@@ -85,12 +99,27 @@ public class Cliente extends UnicastRemoteObject{
 					}
 					}
 				}
-				else if(j.autenticarUsuario(contrasena,tarjeta)){
+				else if(autenticarUsuario(contrasena, tarjeta)){
 					Cuenta cuenta = new Cuenta();
-					cuenta=j.getCuenta(tarjeta);
+					while(true) {
+						try {
+							cuenta=j.getCuenta(tarjeta);
+							break;
+						} catch (java.rmi.ConnectException e) {
+							reconectarServidorCuentas();
+						}
+					}
+					
 					JOptionPane.showMessageDialog(null, "Ingresó "+cuenta.getUsuario()+" con saldo: "+cuenta.getSaldo());
 					carrito = new ArrayList<>();
-					productos = i.getProductos();
+					while(true) {
+						try {
+							productos = i.getProductos();
+							break;
+						} catch (java.rmi.ConnectException e) {
+							reconectarServidorProductos();
+						}
+					}
 					System.out.println("CATÁLOGO DE PRODUCTOS");
 					System.out.println("Numero     Item        Precio        Disponibles");
 					int k=0;
@@ -145,37 +174,140 @@ public class Cliente extends UnicastRemoteObject{
 			}
 			case "2":{
 				tarjeta = JOptionPane.showInputDialog("Escribe tu tarjeta");
-				if(j.verificarRegistro(tarjeta)) {
-					String contra = JOptionPane.showInputDialog("Escribe tu contraseña");
-					j.setContrasena(tarjeta,contra);
-					 JOptionPane.showMessageDialog(null, "Se ha registrado correctamente");
-				}else {
-					JOptionPane.showMessageDialog(null, "Error", "Información invalida", JOptionPane.ERROR_MESSAGE);
+				while(true) {
+					try {
+						if(j.verificarRegistro(tarjeta)) {
+							String contra = JOptionPane.showInputDialog("Escribe tu contraseña");
+							while(true) {
+								try {
+									j.setContrasena(tarjeta,contra);
+									break;
+								} catch (java.rmi.ConnectException e) {
+									reconectarServidorCuentas();
+								}
+							}
+							JOptionPane.showMessageDialog(null, "Se ha registrado correctamente");
+						}else {
+							JOptionPane.showMessageDialog(null, "Error", "Información invalida", JOptionPane.ERROR_MESSAGE);
+						}
+						break;
+					} catch (java.rmi.ConnectException e) {
+						reconectarServidorCuentas();
+					}
 				}
+				
 				break;
 			}
 			}
 		}
 
-	 }
-	
-	
+	}
 
-	private void recargarTarjeta(String tarj, String saldo) throws RemoteException {
-		Transaccion tvRecarga = j.solicitarTransaccion();
-		Cuenta cuenta = j.getCuenta(tarj);
+
+
+	private boolean autenticarUsuario(String contrasena, String tarjeta) throws Exception {
+		
+		boolean resultado = false;
+		while(true) {
+			try {
+				resultado = j.autenticarUsuario(contrasena,tarjeta);
+				break;
+			} catch (java.rmi.ConnectException e) {
+				reconectarServidorCuentas();
+			}
+		}
+		return resultado;
+	}
+	private static void reconectarServidorProductos() throws Exception  {
+		int maxTries = 20;
+		int count = 0;
+		while(true){
+			try {
+				i = (ProductoRMII) Naming.lookup(URIProductos);
+				break;
+			} catch (MalformedURLException | RemoteException | NotBoundException e) {
+				Thread.sleep(1000);
+				if (++count == maxTries) throw e;
+			}
+		}
+	}
+	private static void reconectarServidorCuentas() throws Exception  {
+		int maxTries = 20;
+		int count = 0;
+		while(true){
+			try {
+				j = (CuentaRMII) Naming.lookup(URICuentas);
+				break;
+			} catch (MalformedURLException | RemoteException | NotBoundException e) {
+				Thread.sleep(1000);
+				if (++count == maxTries) throw e;
+			}
+		}
+	}
+	
+	private void recargarTarjeta(String tarj, String saldo) throws Exception {
+		Transaccion tvRecarga = null;
+		while(true) {
+			try {
+				tvRecarga = j.solicitarTransaccion();
+				break;
+			} catch (java.rmi.ConnectException e) {
+				reconectarServidorCuentas();
+			}
+		}
+		while(true) {
+			try {
+				Cuenta cuenta = j.getCuenta(tarj);
+				break;
+			} catch (java.rmi.ConnectException e) {
+				reconectarServidorCuentas();
+			}
+		}
+		
 		tvRecarga.adicionarObjetoEscritura(j.getCuenta(tarj));
 		tvRecarga.adicionarObjetoLectura(j.getCuenta(tarj));
-		tvRecarga = j.iniciarTransaccion(tvRecarga);
+		while(true) {
+			try {
+				tvRecarga = j.iniciarTransaccion(tvRecarga);
+				break;
+			} catch (java.rmi.ConnectException e) {
+				reconectarServidorCuentas();
+			}
+		}
+		
 		if(tvRecarga.getEstado()==2) {
-			j.recargarTarjeta(tarj,saldo);
+			while(true) {
+				try {
+					j.recargarTarjeta(tarj,saldo);
+					break;
+				} catch (java.rmi.ConnectException e) {
+					reconectarServidorCuentas();
+				}
+			}
+			
 		}else {
 			JOptionPane.showMessageDialog(null, "Error", "Transacción abortada", JOptionPane.ERROR_MESSAGE);
 		}
-		j.finalizarTransaccion(tvRecarga);
+		while(true) {
+			try {
+				j.finalizarTransaccion(tvRecarga);
+				break;
+			} catch (java.rmi.ConnectException e) {
+				reconectarServidorCuentas();
+			}
+		}
+		
 	}
-	private void agregarProducto(String nombre, String cantidadD, String precio) throws RemoteException {
-		Transaccion tvAgregar = i.solicitarTransaccion();
+	private void agregarProducto(String nombre, String cantidadD, String precio) throws Exception {
+		Transaccion tvAgregar = null;
+		while(true) {
+			try {
+				tvAgregar = i.solicitarTransaccion();
+				break;
+			} catch (java.rmi.ConnectException e) {
+				reconectarServidorProductos();
+			}
+		}
 		this.productos=i.getProductos();
 		Producto p = i.getProductoNombre(nombre);
 		if(p==null){
@@ -185,136 +317,292 @@ public class Cliente extends UnicastRemoteObject{
 			tvAgregar.adicionarObjetoEscritura(p);
 			tvAgregar.adicionarObjetoLectura(p);
 		}
-		tvAgregar = i.iniciarTransaccion(tvAgregar);
+		while(true) {
+			try {
+				tvAgregar = i.iniciarTransaccion(tvAgregar);
+				break;
+			} catch (java.rmi.ConnectException e) {
+				reconectarServidorProductos();
+			}
+		}
 		if(tvAgregar.getEstado()==2) {
 			int id = productos.size();
 			if(p==null){
 				p = new Producto(id, nombre, Integer.parseInt(cantidadD), Float.parseFloat(precio));
-				i.agregarProducto(p);
+				while(true) {
+					try {
+						i.agregarProducto(p);
+						break;
+					} catch (java.rmi.ConnectException e) {
+						reconectarServidorProductos();
+					}
+				}
 			}else{
-				i.aumentarCantidadProducto(p.getID(), Integer.parseInt(cantidadD));
+				while(true) {
+					try {
+						i.aumentarCantidadProducto(p.getID(), Integer.parseInt(cantidadD));
+						break;
+					} catch (java.rmi.ConnectException e) {
+						reconectarServidorProductos();
+					}
+				}
 			}
-			
+
 		}else {
 			JOptionPane.showMessageDialog(null, "Error", "Transacción abortada", JOptionPane.ERROR_MESSAGE);
 		}
-		i.finalizarTransaccion(tvAgregar);
-
+		while(true) {
+			try {
+				i.finalizarTransaccion(tvAgregar);
+				break;
+			} catch (java.rmi.ConnectException e) {
+				reconectarServidorProductos();
+			}
+		}
 	}
-	private void transaccionDeCompra(String tarjeta) throws RemoteException {
+	private void transaccionDeCompra(String tarjeta) throws Exception {
 
 
 		float total = 0;
-		boolean saldo = true;
+		
 
-		Transaccion tvCuenta = j.solicitarTransaccion();
+		Transaccion tvCuenta = null;
+		while(true) {
+			try {
+				tvCuenta = j.solicitarTransaccion();
+				break;
+			} catch (java.rmi.ConnectException e) {
+				reconectarServidorCuentas();
+			}
+		}
+		
 		for (ProductoCarrito productoCarrito : carrito) {
 			total+= productoCarrito.getP().getPrecio()*productoCarrito.getCantidad();
 		}
 		tvCuenta.adicionarObjetoEscritura(j.getCuenta(tarjeta));
 		tvCuenta.adicionarObjetoLectura(j.getCuenta(tarjeta));
-		tvCuenta = j.iniciarTransaccion(tvCuenta);
-		Cuenta cuenta = j.getCuenta(tarjeta);
 		
-		
+		while(true) {
+			try {
+				tvCuenta = j.iniciarTransaccion(tvCuenta);
+				break;
+			} catch (java.rmi.ConnectException e) {
+				reconectarServidorCuentas();
+			}
+		}
+		Cuenta cuenta  = null;
+		while(true) {
+			try {
+				cuenta = j.getCuenta(tarjeta);
+				break;
+			} catch (java.rmi.ConnectException e) {
+				reconectarServidorCuentas();
+			}
+		}
+
 		if(cuenta.getSaldo()>=total&&tvCuenta.getEstado()!=3){
+			Transaccion tvProductosALeer = null;
+			while(true) {
+				try {
+					tvProductosALeer = i.solicitarTransaccion();
+					break;
+				} catch (java.rmi.ConnectException e) {
+					reconectarServidorProductos();
+				}
+			}
 			
-			
-			Transaccion tvProductosALeer = i.solicitarTransaccion();
 			for (ProductoCarrito productoCarrito : carrito) {
 				tvProductosALeer.adicionarObjetoLectura(productoCarrito.getP());
 			}
-			try {
-				tvProductosALeer = i.iniciarTransaccion(tvProductosALeer);
-			}
-			catch (java.rmi.ConnectException e) {
-				
+			while(true) {
+				try {
+					tvProductosALeer = i.iniciarTransaccion(tvProductosALeer);
+					break;
+				} catch (java.rmi.ConnectException e) {
+					reconectarServidorProductos();
+				}
 			}
 			
+			
+
 			if(tvProductosALeer.getEstado()==2){
 				ArrayList<ProductoCarrito> productosComprados = new ArrayList<ProductoCarrito>();
 				for (ProductoCarrito productoCarrito : carrito) {
-					if(i.getProducto(productoCarrito.getP().getID()).getCantidadDisponible()>=productoCarrito.getCantidad()){
-						productosComprados.add(productoCarrito);
-					}else{
-						JOptionPane.showMessageDialog(null, "Error", "El producto "+productoCarrito.getP().getNombre()+" se ha agotado", JOptionPane.ERROR_MESSAGE);
+					while(true) {
+						try {
+							if(i.getProducto(productoCarrito.getP().getID()).getCantidadDisponible()>=productoCarrito.getCantidad()){
+								productosComprados.add(productoCarrito);
+							}else{
+								JOptionPane.showMessageDialog(null, "Error", "El producto "+productoCarrito.getP().getNombre()+" se ha agotado", JOptionPane.ERROR_MESSAGE);
 
+							}
+							break;
+						} catch (java.rmi.ConnectException e) {
+							reconectarServidorProductos();
+						}
+					}
+					
+				}
+				while(true) {
+					try {
+						i.finalizarTransaccion(tvProductosALeer);
+						break;
+					} catch (java.rmi.ConnectException e) {
+						reconectarServidorProductos();
 					}
 				}
-			
-				i.finalizarTransaccion(tvProductosALeer);
-				Transaccion tvProductosAComprar = i.solicitarTransaccion();
+				Transaccion tvProductosAComprar = null;
+				while(true) {
+					try {
+						tvProductosAComprar = i.solicitarTransaccion();
+						break;
+					} catch (java.rmi.ConnectException e) {
+						reconectarServidorProductos();
+					}
+				}
+				
 				for (ProductoCarrito productoCarrito : productosComprados) {
 					tvProductosAComprar.adicionarObjetoEscritura(productoCarrito.getP());
 				}
-				tvProductosAComprar = i.iniciarTransaccion(tvProductosAComprar);
+				while(true) {
+					try {
+						tvProductosAComprar = i.iniciarTransaccion(tvProductosAComprar);
+						break;
+					} catch (java.rmi.ConnectException e) {
+						reconectarServidorProductos();
+					}
+				}
+				
 				if(tvProductosAComprar.getEstado()==2){
 					total = 0;
 					for (ProductoCarrito productoCarrito : productosComprados) {
-						i.disminuirCantidadDisponible(productoCarrito.getP().getID(), productoCarrito.getCantidad());
+						while(true) {
+							try {
+								i.disminuirCantidadDisponible(productoCarrito.getP().getID(), productoCarrito.getCantidad());
+								break;
+							} catch (java.rmi.ConnectException e) {
+								reconectarServidorProductos();
+							}
+						}
+						
 						total+=productoCarrito.getP().getPrecio()*productoCarrito.getCantidad();
 					}
 					try {
-						i.finalizarTransaccion(tvProductosAComprar);
+						while(true) {
+							try {
+								i.finalizarTransaccion(tvProductosAComprar);
+								break;
+							} catch (java.rmi.ConnectException e) {
+								reconectarServidorProductos();
+							}
+						}
+						
 						JOptionPane.showMessageDialog(null, "Su saldo: "+ (cuenta.getSaldo()-total));
-						j.setSaldo(tarjeta, cuenta.getSaldo()-total);
-						j.finalizarTransaccion(tvCuenta);
-					}
-					catch(java.rmi.ConnectException e) {
+						
+						while(true) {
+							try {
+								j.setSaldo(tarjeta, cuenta.getSaldo()-total);
+								break;
+							} catch (java.rmi.ConnectException e) {
+								reconectarServidorCuentas();
+							}
+						}
+						while(true) {
+							try {
+								j.finalizarTransaccion(tvCuenta);
+								break;
+							} catch (java.rmi.ConnectException e) {
+								reconectarServidorCuentas();
+							}
+						}
 						
 					}
-					
-					
+					catch(java.rmi.ConnectException e) {
+
+					}
+
+
 				}else{
 					JOptionPane.showMessageDialog(null, "Error", "Transacción abortada (COMPRA "+tvProductosAComprar.getEstado() +") ... intente de nuevo ", JOptionPane.ERROR_MESSAGE);
-					try {
-						i.finalizarTransaccion(tvProductosALeer);
-						j.finalizarTransaccion(tvCuenta);
+					while(true) {
+						try {
+							i.finalizarTransaccion(tvProductosALeer);
+							break;
+						} catch (java.rmi.ConnectException e) {
+							reconectarServidorProductos();
+						}
 					}
-					catch(java.rmi.ConnectException e) {
-						
+					
+					
+					while(true) {
+						try {
+							j.finalizarTransaccion(tvCuenta);
+							break;
+						} catch (java.rmi.ConnectException e) {
+							reconectarServidorCuentas();
+						}
 					}
 				}
-				
-				
+
+
 			}else{
 				JOptionPane.showMessageDialog(null, "Error", "Transacción abortada (LECTURA-COMPRA) ... intente de nuevo", JOptionPane.ERROR_MESSAGE);
-				try {
-					i.finalizarTransaccion(tvProductosALeer);
-					j.finalizarTransaccion(tvCuenta);
+				while(true) {
+					try {
+						i.finalizarTransaccion(tvProductosALeer);
+						break;
+					} catch (java.rmi.ConnectException e) {
+						reconectarServidorProductos();
+					}
 				}
-				catch(java.rmi.ConnectException e) {
-					
+				while(true) {
+					try {
+						j.finalizarTransaccion(tvCuenta);
+						break;
+					} catch (java.rmi.ConnectException e) {
+						reconectarServidorCuentas();
+					}
 				}
 				
+				
+				
+
 			}
 		}else if(tvCuenta.getEstado()==3){
 			JOptionPane.showMessageDialog(null, "Error", "Transacción abortada (CUENTA)... intente de nuevo", JOptionPane.ERROR_MESSAGE);
-			try {
-				j.finalizarTransaccion(tvCuenta);
+			while(true) {
+				try {
+					j.finalizarTransaccion(tvCuenta);
+					break;
+				} catch (java.rmi.ConnectException e) {
+					reconectarServidorCuentas();
+				}
 			}
-			catch(java.rmi.ConnectException e) {
 				
-			}
+			
+
+			
 		}else{
 			JOptionPane.showMessageDialog(null, "Error", "Saldo insuficienta", JOptionPane.ERROR_MESSAGE);
-			try {
-				j.finalizarTransaccion(tvCuenta);
+			while(true) {
+				try {
+					j.finalizarTransaccion(tvCuenta);
+					break;
+				} catch (java.rmi.ConnectException e) {
+					reconectarServidorCuentas();
+				}
 			}
-			catch(java.rmi.ConnectException e) {
-				
-			}
-			
+
 		}
 
 
 
 	}
-	public static void main(String[] args) throws MalformedURLException, RemoteException, NotBoundException {
+	public static void main(String[] args) throws Exception {
 
 
 		System.setProperty("java.security.policy", "./cliente.policy");
-		
+
 
 
 		//coordinador = (CoordinadorInterface) registry.lookup("//127.0.0.1/Coordinador");
@@ -323,10 +611,10 @@ public class Cliente extends UnicastRemoteObject{
 		try {
 			//Registry registry = LocateRegistry.getRegistry(portCuentas);
 			try {
-				j = (CuentaRMII) Naming.lookup("rmi://"+"localhost:3001"+"/Cuentas");
+				j = (CuentaRMII) Naming.lookup(URICuentas);
 			}
 			catch (java.rmi.ConnectException e) {
-				
+
 			}
 			//j = (CuentaRMII) registry.lookup("10.192.101.31/Cuentas");
 		}  catch (NotBoundException e) {
@@ -340,10 +628,10 @@ public class Cliente extends UnicastRemoteObject{
 		try {
 			//Registry registry = LocateRegistry.getRegistry(portProductos);
 			try {
-				i = (ProductoRMII) Naming.lookup("rmi://"+"localhost:3002"+"/Productos");
+				i = (ProductoRMII) Naming.lookup(URIProductos);
 			}
 			catch (java.rmi.ConnectException e) {
-				
+
 			}
 			//i = (ProductoRMII) registry.lookup("10.192.101.31/Productos");
 		}  catch (NotBoundException e) {

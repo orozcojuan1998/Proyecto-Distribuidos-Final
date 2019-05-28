@@ -1,7 +1,14 @@
 package Cuenta;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -20,12 +27,13 @@ import Cliente.Participante;
 import Cliente.ProductoCarrito;
 import Cliente.Transaccion;
 import Coordinador.CoordinadorInterface;
+import Producto.PiedraProductos;
 import Producto.Producto;
 import Cliente.Transaccion;
 
 public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
 
-	private ArrayList<Transaccion> transaccionesActivas;
+	private List<Transaccion> transaccionesActivas;
 	private int portCoordinador = 3000;
 	private CoordinadorInterface coordinador;
 	private int numSecuencia = 0;
@@ -41,16 +49,19 @@ public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
 
 		//coordinador = (CoordinadorInterface) registry.lookup("//127.0.0.1/Coordinador");
 
+		boolean persistencia = intentarLeerPiedra();
+		if(!persistencia){
+			leerCuentas("iniciocuentas.txt");
+		}
 		
 		
-		leerCuentas("iniciocuentas.txt");
 		imprimirCuentas();
 	}
 
-	ArrayList<Cuenta> cuentas = new ArrayList<Cuenta>(); 
+	private List<Cuenta> cuentas = new ArrayList<Cuenta>(); 
 	private static final long serialVersionUID = 1L;
     Map<String, String> card_value = new HashMap<String, String>();
-    List<List<String>> TX = new ArrayList<List<String>>();
+    
     
     
     
@@ -109,7 +120,7 @@ public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
 	}
 
 	@Override
-	public ArrayList<Cuenta> getCuentas() throws RemoteException {
+	public List<Cuenta> getCuentas() throws RemoteException {
 		return this.cuentas;
 	}
 
@@ -138,20 +149,8 @@ public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
 		return false;
 	}
 
-	@Override
-    public int get_indexTX() throws RemoteException {                
-		return indexTX_user; 
-	}
-    
-    @Override
-    public void set_indexTX() 	throws RemoteException {                
-    	indexTX_user++; 
-    }
-   
-    @Override
-    public void add_operation(int index, String operation){
-        TX.get(index).add(operation);
-    }
+	
+ 
     
     public boolean validarForward(Transaccion tv) throws RemoteException{
     	boolean valida = true;
@@ -245,6 +244,7 @@ public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
 		if(validarForward(tv)){
 			tv.setEstado(2);
 			transaccionesActivas.add(tv);
+			escribirEnPiedra();
 		}else{
 			tv.setEstado(3);
 		}
@@ -259,6 +259,9 @@ public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
 		for (int i =0 ; i < transaccionesActivas.size(); i++) {
 			if(tv.getNumTransaccion()==transaccionesActivas.get(i).getNumTransaccion()){
 				transaccionesActivas.remove(i);
+				if(tv.getEstado()==2){
+					escribirEnPiedra();
+				}
 				tv.setEstado(4);
 			}
 		}
@@ -335,7 +338,81 @@ public class CImpleRMII extends UnicastRemoteObject implements CuentaRMII {
 	}
 
 	
+	public void escribirEnPiedra(){
+		File fichero = new File("/PersistenciaServidorCuentas");
+		
+		PiedraCuentas piedra = new PiedraCuentas();
+		piedra.setCuentas(cuentas);
+		piedra.setTransaccionesActivas(transaccionesActivas);
+		piedra.setNumSecuencia(numSecuencia);
+		
+		try {
+			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fichero));
+			oos.writeObject(piedra);
+			oos.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	public boolean intentarLeerPiedra(){
+		File fichero = new File("/PersistenciaServidorCuentas");
+		ObjectInputStream ois = null;
+		try {
+			ois = new ObjectInputStream(new FileInputStream(fichero));
+			PiedraCuentas p =(PiedraCuentas) ois.readObject();
+			if(p!=null){
+				setNumSecuencia(p.getNumSecuencia());
+				setCuentas(p.getCuentas());
+				setTransaccionesActivas(p.getTransaccionesActivas());
+				
+			}else{
+				ois.close();
+				return false;
+			}
+			ois.close();
+		} catch (FileNotFoundException e) {
+			return false;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			try {
+				ois.close();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			return false;
+		}
+		return true;
+	}
 
+	public List<Transaccion> getTransaccionesActivas() {
+		return transaccionesActivas;
+	}
+
+	public void setTransaccionesActivas(List<Transaccion> transaccionesActivas) {
+		this.transaccionesActivas = transaccionesActivas;
+	}
+
+	public int getNumSecuencia() {
+		return numSecuencia;
+	}
+
+	public void setNumSecuencia(int numSecuencia) {
+		this.numSecuencia = numSecuencia;
+	}
+
+	public void setCuentas(List<Cuenta> cuentas) {
+		this.cuentas = cuentas;
+	}
+	
+	
 
 	
 
