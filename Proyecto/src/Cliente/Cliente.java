@@ -84,6 +84,7 @@ public class Cliente extends UnicastRemoteObject{
 							precio = JOptionPane.showInputDialog("Ingrese el precio del producto");
 							JOptionPane.showMessageDialog(null, "Se ha agregado el producto correctamente");
 						}
+						JOptionPane.showMessageDialog(null, "Se ha agregado el producto correctamente");
 						while(true) {
 							try {
 								productos = i.getProductos();
